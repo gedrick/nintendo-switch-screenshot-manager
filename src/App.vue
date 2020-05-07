@@ -46,7 +46,7 @@ export default {
   name: "App",
   components: {},
   methods: {
-    selectSdCardDir() {
+    async selectSdCardDir() {
       ipcRenderer.send("select-sd-card-dir");
     }
   }
