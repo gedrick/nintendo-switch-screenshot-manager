@@ -135,15 +135,21 @@ export default {
     }
   },
   computed: {
-    ...mapState(["settings"])
+    ...mapState(["settings", "gameIds"])
   },
   methods: {
-    ...mapMutations(["setSettings", "updateSetting"]),
+    ...mapMutations([
+      "setSettings",
+      "updateSetting",
+      "setGameIds",
+      "addGameId"
+    ]),
     importGameIds() {
       const gameIdFile = fs.readFileSync(
         path.dirname(process.execPath) + "/game_ids.json"
       );
-      this.gameIds = JSON.parse(gameIdFile);
+      console.log(Object.values(JSON.parse(gameIdFile)));
+      this.setGameIds(JSON.parse(gameIdFile));
     },
     beginImport() {
       this.importGameIds();
@@ -167,25 +173,47 @@ export default {
       this.processDirectories(allDirectories);
     },
     processDirectories(directoryArray) {
-      // const outputDir = this.settings.outputDir
-
       directoryArray.forEach(directory => {
         const screenshotFiles = fs.readdirSync(directory);
         const filteredFiles = this.filterFiles(screenshotFiles);
-        filteredFiles.forEach(screenshotFilename => {
-          const gameName = this.getGameTitle(screenshotFilename);
-          console.log(gameName, screenshotFilename);
-          // try {
-          //   const newFileName = generateFilename(screenshot);
-          //   await fs.promises.copyFile(`${directory}/${screenshot}`);
-          // } catch (e) {
-          //   console.log(
-          //     `There was an error copying file: ${directory}/${screenshot}`
-          //   );
-          // }
-        });
+        this.backupFiles(filteredFiles);
       });
     },
+
+    backupFiles(filelist) {
+      // let outputDir;
+      filelist.forEach(screenshotFilename => {
+        const gameName = this.getGameTitle(screenshotFilename);
+
+        if (!gameName) {
+          // Do this later
+          // ipcRenderer.send('getFilename')
+          console.log("game name not found, skipping for now");
+        }
+        // WORKFLOW:
+        // check if the game name exists
+        // else, show a prompt, write the id and title to it
+
+        // check if the game name folder exists
+        // else, create it
+
+        // check number of items in the folder for starting index
+        // generate the final file name
+
+        // outputDir = `${this.settings.outputDir}/${gameName}/`;
+
+        // console.log(gameName, screenshotFilename);
+        // try {
+        //   const newFileName = generateFilename(screenshot);
+        //   await fs.promises.copyFile(`${directory}/${screenshot}`);
+        // } catch (e) {
+        //   console.log(
+        //     `There was an error copying file: ${directory}/${screenshot}`
+        //   );
+        // }
+      });
+    },
+    // backupFile(to, from) {},
     filterFiles(filelist) {
       const fileTypes = [];
       if (this.types.images) {
@@ -202,10 +230,6 @@ export default {
       });
       return files;
     },
-    //  generateFilename(filename) {
-    //   const gameTitle =  getGameTitle(filename);
-    //   return;
-    // },
     getGameTitle(filename) {
       const file = filename.split("-");
       console.log(file);
