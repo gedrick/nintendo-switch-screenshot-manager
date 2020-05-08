@@ -12,7 +12,7 @@ const isDevelopment = process.env.NODE_ENV !== "production";
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
-let win;
+let mainWindow;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -50,9 +50,9 @@ if (process.platform === "darwin") {
 
 function createWindow() {
   // Create the browser window.
-  win = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 700,
-    height: 400,
+    height: 420,
     webPreferences: {
       nodeIntegration: true
     }
@@ -62,19 +62,19 @@ function createWindow() {
 
   if (process.env.WEBPACK_DEV_SERVER_URL) {
     // Load the url of the dev server if in development mode
-    win.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
-    if (!process.env.IS_TEST) win.webContents.openDevTools();
+    mainWindow.loadURL(process.env.WEBPACK_DEV_SERVER_URL);
+    if (!process.env.IS_TEST) mainWindow.webContents.openDevTools();
   } else {
     createProtocol("app");
     // Load the index.html when not in development
-    win.loadURL("app://./index.html");
+    mainWindow.loadURL("app://./index.html");
   }
 
   const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
   Menu.setApplicationMenu(mainMenu);
 
-  win.on("closed", () => {
-    win = null;
+  mainWindow.on("closed", () => {
+    mainWindow = null;
   });
 }
 
@@ -90,7 +90,7 @@ app.on("window-all-closed", () => {
 app.on("activate", () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
-  if (win === null) {
+  if (mainWindow === null) {
     createWindow();
   }
 });
@@ -134,7 +134,7 @@ async function updateSettingsFile(key, newValue) {
 }
 
 ipcMain.on("select-sd-card-dir", async () => {
-  const result = await dialog.showOpenDialog(win, {
+  const result = await dialog.showOpenDialog(mainWindow, {
     title: "SD Card Directory",
     properties: ["openDirectory"]
   });
@@ -145,12 +145,12 @@ ipcMain.on("select-sd-card-dir", async () => {
     if (fs.existsSync(`${newPath}/Nintendo`)) {
       try {
         await updateSettingsFile("sdCardDir", newPath);
-        win.webContents.send("setSdCardDir", newPath);
+        mainWindow.webContents.send("setSdCardDir", newPath);
       } catch (e) {
         console.log("Error: Your settings could not be saved:", e);
       }
     } else {
-      win.webContents.send("setSdCardDir");
+      mainWindow.webContents.send("setSdCardDir");
       console.log("Error: No Nintendo folder found!");
     }
   } else {
@@ -159,7 +159,7 @@ ipcMain.on("select-sd-card-dir", async () => {
 });
 
 ipcMain.on("select-output-dir", async () => {
-  const result = await dialog.showOpenDialog(win, {
+  const result = await dialog.showOpenDialog(mainWindow, {
     title: "Output Directory",
     properties: ["openDirectory"]
   });
@@ -170,7 +170,7 @@ ipcMain.on("select-output-dir", async () => {
     try {
       await updateSettingsFile("outputDir", newPath);
       console.log("set new output dir", newPath);
-      win.webContents.send("setOutputDir", newPath);
+      mainWindow.webContents.send("setOutputDir", newPath);
     } catch (e) {
       console.log("Error: Your settings could not be saved:", e);
     }

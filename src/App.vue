@@ -89,12 +89,6 @@
 
       <button
         class="waves-light btn-large"
-        :class="{
-          pulse:
-            settings.outputDir &&
-            settings.sdCardDir &&
-            (types.images || types.videos)
-        }"
         id="output-dir-btn"
         @click="beginImport"
         :disabled="
@@ -174,18 +168,10 @@ export default {
     },
     processDirectories(directoryArray) {
       // const outputDir = this.settings.outputDir
-      const fileTypes = [];
-      if (this.types.images) {
-        fileTypes.push("jpg");
-      }
-      if (this.types.videos) {
-        fileTypes.push("mp4");
-      }
+
       directoryArray.forEach(directory => {
         const screenshotFiles = fs.readdirSync(directory);
-        const filteredFiles = screenshotFiles.filter(filename =>
-          fileTypes.includes(filename.split(".")[1])
-        );
+        const filteredFiles = this.filterFiles(screenshotFiles);
         filteredFiles.forEach(screenshotFilename => {
           const gameName = this.getGameTitle(screenshotFilename);
           console.log(gameName, screenshotFilename);
@@ -200,12 +186,30 @@ export default {
         });
       });
     },
+    filterFiles(filelist) {
+      const fileTypes = [];
+      if (this.types.images) {
+        fileTypes.push("jpg");
+      }
+      if (this.types.videos) {
+        fileTypes.push("mp4");
+      }
+
+      const files = filelist.filter(filename => {
+        const validType = fileTypes.includes(filename.split(".")[1]);
+        const validName = filename.match(/^\d+-[A-Z\d]+\.(jpg|mp4)$/);
+        return validType && validName;
+      });
+      return files;
+    },
     //  generateFilename(filename) {
     //   const gameTitle =  getGameTitle(filename);
     //   return;
     // },
     getGameTitle(filename) {
       const file = filename.split("-");
+      console.log(file);
+
       const gameId = file[1].split(".")[0];
 
       const gameTitle = this.gameIds[gameId];
@@ -246,6 +250,6 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+  margin-top: 20px;
 }
 </style>
