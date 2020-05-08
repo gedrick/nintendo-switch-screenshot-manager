@@ -89,9 +89,9 @@ export default {
       }
     };
   },
-  async mounted() {
+  mounted() {
     this.setupListeners();
-    const settings = await fs.promises.readFile(
+    const settings = fs.readFileSync(
       path.dirname(process.execPath) + "/settings.json"
     );
     if (settings) {
@@ -103,7 +103,14 @@ export default {
   },
   methods: {
     ...mapMutations(["setSettings", "updateSetting"]),
+    importGameIds() {
+      const gameIdFile = fs.readFileSync(
+        path.dirname(process.execPath) + "/game_ids.json"
+      );
+      this.gameIds = JSON.parse(gameIdFile);
+    },
     beginImport() {
+      this.importGameIds();
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
       // const outputDir = this.settings.outputDir
 
@@ -126,38 +133,31 @@ export default {
     processDirectories(directoryArray) {
       directoryArray.forEach(directory => {
         const allScreenshots = fs.readdirSync(directory);
-        console.log(allScreenshots.length);
-
-        // allScreenshots.forEach(async screenshot => {
-        //   console.log(screenshot);
-
-        //   // try {
-        //   //   const newFileName = generateFilename(screenshot);
-        //   //   await fs.promises.copyFile(`${directory}/${screenshot}`);
-        //   // } catch (e) {
-        //   //   console.log(
-        //   //     `There was an error copying file: ${directory}/${screenshot}`
-        //   //   );
-        //   // }
-        // });
+        allScreenshots.forEach(screenshot => {
+          const gameName = this.getGameTitle(screenshot);
+          console.log(gameName, screenshot);
+          // try {
+          //   const newFileName = generateFilename(screenshot);
+          //   await fs.promises.copyFile(`${directory}/${screenshot}`);
+          // } catch (e) {
+          //   console.log(
+          //     `There was an error copying file: ${directory}/${screenshot}`
+          //   );
+          // }
+        });
       });
     },
-    // async generateFilename(filename) {
-    //   const gameTitle = await getGameTitle(filename);
+    //  generateFilename(filename) {
+    //   const gameTitle =  getGameTitle(filename);
     //   return;
     // },
-    // async getGameTitle(filename) {
-    //   const file = filename.split("-");
-    //   const gameId = file[1].split(".")[0];
+    getGameTitle(filename) {
+      const file = filename.split("-");
+      const gameId = file[1].split(".")[0];
 
-    // TODO -- DO THIS GLOBALLY SO IT ONLY READS ONCE
-    //   const gameIdFile = await fs.promises.readFile(
-    //     path.dirname(process.execPath) + "/game_ids.json"
-    //   );
-    //   const gameIdObj = JSON.parse(gameIdFile);
-    //   const gameTitle = gameIdObj[gameId].toLowerCase();
-    //   return gameTitle;
-    // },
+      const gameTitle = this.gameIds[gameId];
+      return gameTitle || false;
+    },
     setupListeners() {
       ipcRenderer.addListener("setSdCardDir", (event, directory) => {
         if (!directory) {
