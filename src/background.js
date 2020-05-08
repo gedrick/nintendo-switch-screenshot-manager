@@ -134,8 +134,6 @@ async function updateSettingsFile(key, newValue) {
 }
 
 ipcMain.on("select-sd-card-dir", async () => {
-  console.log("captured!");
-
   const result = await dialog.showOpenDialog(win, {
     title: "SD Card Directory",
     properties: ["openDirectory"]
@@ -144,7 +142,7 @@ ipcMain.on("select-sd-card-dir", async () => {
   let newPath;
   if (!result.canceled) {
     newPath = result.filePaths[0];
-    if (fs.existsSync(`${newPath}/DCIM`)) {
+    if (fs.existsSync(`${newPath}/Nintendo`)) {
       try {
         await updateSettingsFile("sdCardDir", newPath);
         win.webContents.send("setSdCardDir", newPath);
@@ -153,7 +151,7 @@ ipcMain.on("select-sd-card-dir", async () => {
       }
     } else {
       win.webContents.send("setSdCardDir");
-      console.log("Error: No DCIM folder found!");
+      console.log("Error: No Nintendo folder found!");
     }
   } else {
     console.log("No directory selected");

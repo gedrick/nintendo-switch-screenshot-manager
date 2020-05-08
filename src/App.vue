@@ -5,10 +5,18 @@
         class="card-panel valign-wrapper lighten-4 row"
         :class="{ red: !settings.sdCardDir, green: settings.sdCardDir }"
       >
-        <div class="col s10">
-          <p v-if="!settings.sdCardDir">Select the directory of your SD card</p>
-          <b v-if="settings.sdCardDir">{{ settings.sdCardDir }}</b>
-          <p v-if="error" class="red">{{ error }}</p>
+        <div class="col s1">
+          <label v-if="settings.sdCardDir">
+            <input disabled type="checkbox" checked="checked" />
+            <span></span>
+          </label>
+        </div>
+        <div class="col s9">
+          <b v-if="!settings.sdCardDir" class="left">
+            Select the directory of your SD card
+          </b>
+          <b v-if="settings.sdCardDir" class="left">{{ settings.sdCardDir }}</b>
+          <b v-if="error" class="red-text bold left">{{ error }}</b>
         </div>
         <div class="col s2">
           <button
@@ -16,7 +24,8 @@
             class="waves-effect waves-light btn"
             id="sd-dir-btn"
           >
-            Select
+            <span v-if="!settings.sdCardDir">Select</span>
+            <span v-if="settings.sdCardDir">Change</span>
           </button>
         </div>
       </div>
@@ -25,11 +34,17 @@
         class="card-panel valign-wrapper lighten-4 row"
         :class="{ red: !settings.outputDir, green: settings.outputDir }"
       >
-        <div class="col s10">
-          <p v-if="!settings.outputDir">
+        <div class="col s1">
+          <label v-if="settings.outputDir">
+            <input type="checkbox" checked="checked" />
+            <span></span>
+          </label>
+        </div>
+        <div class="col s9">
+          <b v-if="!settings.outputDir" class="left">
             Select the directory to save your screenshots
-          </p>
-          <b v-else>{{ settings.outputDir }}</b>
+          </b>
+          <b v-else class="left">{{ settings.outputDir }}</b>
         </div>
         <div class="col s2">
           <button
@@ -37,13 +52,15 @@
             class="waves-effect waves-light btn"
             id="output-dir-btn"
           >
-            Select
+            <span v-if="!settings.outputDir">Select</span>
+            <span v-if="settings.outputDir">Change</span>
           </button>
         </div>
       </div>
 
       <button
-        class="waves-effect waves-light btn center"
+        class="waves-light btn-large"
+        :class="{ pulse: settings.outputDir && settings.sdCardDir }"
         id="output-dir-btn"
         :disabled="!settings.outputDir || !settings.sdCardDir"
       >
@@ -66,7 +83,7 @@ export default {
       appPath: null,
       error: null,
       errors: {
-        invalidSdCardDir: "Invalid SD card - no DCIM folder found!"
+        invalidSdCardDir: "Invalid SD card path - no Nintendo folder was found!"
       }
     };
   },
@@ -109,6 +126,10 @@ export default {
 </script>
 
 <style lang="scss">
+body {
+  background-color: #e3f2fd;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
