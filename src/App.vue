@@ -7,7 +7,7 @@
       >
         <div class="col s1">
           <label v-if="settings.sdCardDir">
-            <input disabled type="checkbox" checked="checked" />
+            <input type="checkbox" checked="checked" />
             <span></span>
           </label>
         </div>
@@ -62,6 +62,7 @@
         class="waves-light btn-large"
         :class="{ pulse: settings.outputDir && settings.sdCardDir }"
         id="output-dir-btn"
+        @click="beginImport"
         :disabled="!settings.outputDir || !settings.sdCardDir"
       >
         Import
@@ -72,8 +73,9 @@
 
 <script>
 const { ipcRenderer } = require("electron");
-const fsp = require("fs").promises;
+const fs = require("fs");
 const path = require("path");
+// import axios from "axios";
 import { mapState, mapMutations } from "vuex";
 
 export default {
@@ -89,7 +91,7 @@ export default {
   },
   async mounted() {
     this.setupListeners();
-    const settings = await fsp.readFile(
+    const settings = await fs.promises.readFile(
       path.dirname(process.execPath) + "/settings.json"
     );
     if (settings) {
@@ -101,6 +103,61 @@ export default {
   },
   methods: {
     ...mapMutations(["setSettings", "updateSetting"]),
+    beginImport() {
+      const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
+      // const outputDir = this.settings.outputDir
+
+      let allDirectories = [];
+      const yearFolders = fs.readdirSync(sdCardDir);
+      yearFolders.forEach(year => {
+        const yearFolder = `${sdCardDir}/${year}`;
+        const monthFolders = fs.readdirSync(yearFolder);
+        monthFolders.forEach(month => {
+          const monthFolder = `${sdCardDir}/${year}/${month}`;
+          const dayFolders = fs.readdirSync(monthFolder);
+          dayFolders.forEach(day => {
+            allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
+          });
+        });
+      });
+
+      this.processDirectories(allDirectories);
+    },
+    processDirectories(directoryArray) {
+      directoryArray.forEach(directory => {
+        const allScreenshots = fs.readdirSync(directory);
+        console.log(allScreenshots.length);
+
+        // allScreenshots.forEach(async screenshot => {
+        //   console.log(screenshot);
+
+        //   // try {
+        //   //   const newFileName = generateFilename(screenshot);
+        //   //   await fs.promises.copyFile(`${directory}/${screenshot}`);
+        //   // } catch (e) {
+        //   //   console.log(
+        //   //     `There was an error copying file: ${directory}/${screenshot}`
+        //   //   );
+        //   // }
+        // });
+      });
+    },
+    // async generateFilename(filename) {
+    //   const gameTitle = await getGameTitle(filename);
+    //   return;
+    // },
+    // async getGameTitle(filename) {
+    //   const file = filename.split("-");
+    //   const gameId = file[1].split(".")[0];
+
+    // TODO -- DO THIS GLOBALLY SO IT ONLY READS ONCE
+    //   const gameIdFile = await fs.promises.readFile(
+    //     path.dirname(process.execPath) + "/game_ids.json"
+    //   );
+    //   const gameIdObj = JSON.parse(gameIdFile);
+    //   const gameTitle = gameIdObj[gameId].toLowerCase();
+    //   return gameTitle;
+    // },
     setupListeners() {
       ipcRenderer.addListener("setSdCardDir", (event, directory) => {
         if (!directory) {
