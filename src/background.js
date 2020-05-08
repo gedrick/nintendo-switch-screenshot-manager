@@ -6,6 +6,8 @@ import {
   createProtocol,
   installVueDevtools
 } from "vue-cli-plugin-electron-builder/lib";
+const fsp = fs.promises;
+const path = require("path");
 const isDevelopment = process.env.NODE_ENV !== "production";
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -108,21 +110,20 @@ app.on("ready", async () => {
   createWindow();
 });
 
-const fsPromises = fs.promises;
 async function updateSettingsFile(key, newValue) {
-  let filePath = "./settings.json";
+  let filePath = path.dirname(process.execPath) + "/settings.json";
   let fileContents;
   let fileJson = {};
 
   if (fs.existsSync(filePath)) {
-    fileContents = await fsPromises.readFile(filePath);
+    fileContents = await fsp.readFile(filePath);
     fileJson = JSON.parse(fileContents);
   }
 
   fileJson[key] = newValue;
 
   try {
-    return await fsPromises.writeFile(
+    return await fsp.writeFile(
       filePath,
       JSON.stringify(fileJson, null, 2),
       "utf8"
@@ -132,7 +133,7 @@ async function updateSettingsFile(key, newValue) {
   }
 }
 
-ipcMain.on("select-sd-card-dir", async event => {
+ipcMain.on("select-sd-card-dir", async () => {
   console.log("captured!");
 
   const result = await dialog.showOpenDialog(win, {
@@ -146,12 +147,34 @@ ipcMain.on("select-sd-card-dir", async event => {
     if (fs.existsSync(`${newPath}/DCIM`)) {
       try {
         await updateSettingsFile("sdCardDir", newPath);
-        win.webContents.send("setSdCardDir");
+        win.webContents.send("setSdCardDir", newPath);
       } catch (e) {
         console.log("Error: Your settings could not be saved:", e);
       }
     } else {
+      win.webContents.send("setSdCardDir");
       console.log("Error: No DCIM folder found!");
+    }
+  } else {
+    console.log("No directory selected");
+  }
+});
+
+ipcMain.on("select-output-dir", async () => {
+  const result = await dialog.showOpenDialog(win, {
+    title: "Output Directory",
+    properties: ["openDirectory"]
+  });
+
+  let newPath;
+  if (!result.canceled) {
+    newPath = result.filePaths[0];
+    try {
+      await updateSettingsFile("outputDir", newPath);
+      console.log("set new output dir", newPath);
+      win.webContents.send("setOutputDir", newPath);
+    } catch (e) {
+      console.log("Error: Your settings could not be saved:", e);
     }
   } else {
     console.log("No directory selected");
