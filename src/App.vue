@@ -58,12 +58,50 @@
         </div>
       </div>
 
+      <div class="card-panel center green lighten-4 valign-wrapper row">
+        <div class="col s5">
+          <div class="switch">
+            <label>
+              Off
+              <input type="checkbox" v-model="types.images" />
+              <span class="lever"></span>
+              On
+            </label>
+          </div>
+          <label v-if="settings.outputDir">
+            <span class="black-text">Backup Images</span>
+          </label>
+        </div>
+        <div class="col s5">
+          <div class="switch">
+            <label>
+              Off
+              <input type="checkbox" v-model="types.videos" />
+              <span class="lever"></span>
+              On
+            </label>
+          </div>
+          <label v-if="settings.outputDir">
+            <span class="black-text">Backup Videos</span>
+          </label>
+        </div>
+      </div>
+
       <button
         class="waves-light btn-large"
-        :class="{ pulse: settings.outputDir && settings.sdCardDir }"
+        :class="{
+          pulse:
+            settings.outputDir &&
+            settings.sdCardDir &&
+            (types.images || types.videos)
+        }"
         id="output-dir-btn"
         @click="beginImport"
-        :disabled="!settings.outputDir || !settings.sdCardDir"
+        :disabled="
+          !settings.outputDir ||
+            !settings.sdCardDir ||
+            (!types.images && !types.videos)
+        "
       >
         Import
       </button>
@@ -86,6 +124,10 @@ export default {
       error: null,
       errors: {
         invalidSdCardDir: "Invalid SD card path - no Nintendo folder was found!"
+      },
+      types: {
+        images: true,
+        videos: true
       }
     };
   },
@@ -111,8 +153,8 @@ export default {
     },
     beginImport() {
       this.importGameIds();
+
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
-      // const outputDir = this.settings.outputDir
 
       let allDirectories = [];
       const yearFolders = fs.readdirSync(sdCardDir);
@@ -131,11 +173,22 @@ export default {
       this.processDirectories(allDirectories);
     },
     processDirectories(directoryArray) {
+      // const outputDir = this.settings.outputDir
+      const fileTypes = [];
+      if (this.types.images) {
+        fileTypes.push("jpg");
+      }
+      if (this.types.videos) {
+        fileTypes.push("mp4");
+      }
       directoryArray.forEach(directory => {
-        const allScreenshots = fs.readdirSync(directory);
-        allScreenshots.forEach(screenshot => {
-          const gameName = this.getGameTitle(screenshot);
-          console.log(gameName, screenshot);
+        const screenshotFiles = fs.readdirSync(directory);
+        const filteredFiles = screenshotFiles.filter(filename =>
+          fileTypes.includes(filename.split(".")[1])
+        );
+        filteredFiles.forEach(screenshotFilename => {
+          const gameName = this.getGameTitle(screenshotFilename);
+          console.log(gameName, screenshotFilename);
           // try {
           //   const newFileName = generateFilename(screenshot);
           //   await fs.promises.copyFile(`${directory}/${screenshot}`);
