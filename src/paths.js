@@ -1,4 +1,4 @@
 export default {
   gameIdPath:
-    "https://github.com/gedrick/nintendo-switch-screenshot-manager/raw/master/public/game_ids.json"
+    "https://raw.githubusercontent.com/gedrick/nintendo-switch-screenshot-manager/master/public/game_ids.json"
 };

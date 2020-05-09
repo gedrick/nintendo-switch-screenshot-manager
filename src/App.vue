@@ -18,7 +18,7 @@
           <p v-if="settings.sdCardDir" class="left">
             <b>SD Card:</b> {{ settings.sdCardDir }}
           </p>
-          <b v-if="error" class="red-text bold left">{{ error }}</b>
+          <b v-if="sdCardError" class="red-text bold left">{{ sdCardError }}</b>
         </div>
         <div class="col s2">
           <button
@@ -157,8 +157,8 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 const path = require("path");
+import paths from "./paths.js";
 import axios from "axios";
-import gameIdPath from "./paths.js";
 import { mapState, mapMutations } from "vuex";
 
 export default {
@@ -167,6 +167,7 @@ export default {
     return {
       appPath: null,
       error: null,
+      sdCardError: null,
       errors: {
         invalidSdCardDir:
           "Invalid SD card path - no Nintendo folder was found!",
@@ -238,48 +239,41 @@ export default {
       ipcRenderer.send("change-path", settingName, this.settings[settingName]);
     },
     async importGameIds() {
-      let res;
-      try {
-        res = await axios.json(gameIdPath);
-      } catch (e) {
-        return Promise.reject(e);
-      }
+      const res = await axios(paths.gameIdPath, {
+        method: "get",
+        headers: {
+          "Content-Type": "application/json"
+        }
+      });
 
       let { data } = res;
-      console.log(JSON.parse(data));
-      this.setGameIds(JSON.parse(data));
-
-      // const gameIdFile = fs.readFileSync(
-      //   path.dirname(process.execPath) + "/game_ids.json"
-      // );
-      // console.log(Object.values(JSON.parse(gameIdFile)));
-      // this.setGameIds(JSON.parse(gameIdFile));
+      this.setGameIds(data);
     },
     async beginImport() {
       try {
         await this.importGameIds();
       } catch (e) {
-        this.error = this.errors.gameIdFetchError;
+        this.sdCardError = this.errors.gameIdFetchError;
         return;
       }
 
-      const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
+      // const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
 
-      let allDirectories = [];
-      const yearFolders = fs.readdirSync(sdCardDir);
-      yearFolders.forEach(year => {
-        const yearFolder = `${sdCardDir}/${year}`;
-        const monthFolders = fs.readdirSync(yearFolder);
-        monthFolders.forEach(month => {
-          const monthFolder = `${sdCardDir}/${year}/${month}`;
-          const dayFolders = fs.readdirSync(monthFolder);
-          dayFolders.forEach(day => {
-            allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
-          });
-        });
-      });
+      // let allDirectories = [];
+      // const yearFolders = fs.readdirSync(sdCardDir);
+      // yearFolders.forEach(year => {
+      //   const yearFolder = `${sdCardDir}/${year}`;
+      //   const monthFolders = fs.readdirSync(yearFolder);
+      //   monthFolders.forEach(month => {
+      //     const monthFolder = `${sdCardDir}/${year}/${month}`;
+      //     const dayFolders = fs.readdirSync(monthFolder);
+      //     dayFolders.forEach(day => {
+      //       allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
+      //     });
+      //   });
+      // });
 
-      this.processDirectories(allDirectories);
+      // this.processDirectories(allDirectories);
     },
     processDirectories(directoryArray) {
       directoryArray.forEach(directory => {
@@ -288,7 +282,6 @@ export default {
         this.backupFiles(filteredFiles);
       });
     },
-
     backupFiles(filelist) {
       // let outputDir;
       filelist.forEach(screenshotFilename => {
