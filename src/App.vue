@@ -148,7 +148,6 @@ export default {
     };
   },
   mounted() {
-    this.setupListeners();
     const settings = fs.readFileSync(
       path.dirname(process.execPath) + "/settings.json"
     );
@@ -365,11 +364,6 @@ export default {
       const gameId = file[1].split(".")[0];
       const gameTitle = this.gameIds[gameId];
       return gameTitle || false;
-    },
-    setupListeners() {
-      ipcRenderer.on("setOutputDir", (event, directory) => {
-        this.updateSetting({ setting: "outputDir", value: directory });
-      });
     }
   }
 };
