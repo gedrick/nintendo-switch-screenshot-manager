@@ -168,6 +168,7 @@
 <script>
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
+const { COPYFILE_EXCL } = fs.constants;
 const path = require("path");
 import Progress from "./components/Progress.vue";
 import paths from "./paths.js";
@@ -186,6 +187,7 @@ export default {
       doneFiles: 0,
       skippedFiles: 0,
 
+      promiseChain: [],
       appPath: null,
       error: null,
       sdCardError: null,
@@ -197,7 +199,7 @@ export default {
       },
       types: {
         images: true,
-        videos: true
+        videos: false
       }
     };
   },
@@ -256,6 +258,7 @@ export default {
     ]),
     cancelImport() {
       this.inProgress = false;
+      this.promiseChain = [];
       this.totalFiles = 0;
       this.doneFiles = 0;
       this.skippedFiles = 0;
@@ -298,28 +301,40 @@ export default {
           });
         });
       });
+
       this.processDirectories(allDirectories);
     },
-    processDirectories(directoryArray) {
+    async processDirectories(directoryArray) {
       let filteredFiles = [];
       directoryArray.forEach(directory => {
         const screenshotFiles = fs.readdirSync(directory);
-        filteredFiles = filteredFiles.concat(this.filterFiles(screenshotFiles));
+        filteredFiles = filteredFiles.concat(
+          this.filterFiles(screenshotFiles).map(filename => {
+            return `${directory}/${filename}`;
+          })
+        );
       });
 
       this.totalFiles = filteredFiles.length;
       this.backupFiles(filteredFiles);
+      await Promise.all(this.promiseChain);
     },
     backupFiles(filelist) {
       // let outputDir;
-      filelist.forEach(screenshotFilename => {
-        const gameName = this.getGameTitle(screenshotFilename);
-        if (!gameName) {
-          // Do this later
-          // ipcRenderer.send('getFilename')
-          // console.log("game name not found, skipping for now");
-        } else {
-          this.backupFile(screenshotFilename);
+      filelist.forEach(screenshotFullPath => {
+        if (this.inProgress) {
+          const filename = screenshotFullPath.substring(
+            screenshotFullPath.lastIndexOf("/") + 1
+          );
+
+          const gameName = this.getGameTitle(filename);
+          if (!gameName) {
+            // Do this later
+            // ipcRenderer.send('no-matching-game')
+            // console.log("game name not found, skipping for now");
+          } else {
+            this.backupFile(screenshotFullPath, gameName);
+          }
         }
 
         this.doneFiles++;
@@ -328,30 +343,63 @@ export default {
         // check if the game name exists
         // else, show a prompt, write the id and title to it
 
-        // check if the game name folder exists
-        // else, create it
+        // DONE check if the game name folder exists
+        // DONE else, create it
 
         // check number of items in the folder for starting index
         // generate the final file name
-
-        // outputDir = `${this.settings.outputDir}/${gameName}/`;
-
-        // console.log(gameName, screenshotFilename);
-        // try {
-        //   const newFileName = generateFilename(screenshot);
-        //   await fs.promises.copyFile(`${directory}/${screenshot}`);
-        // } catch (e) {
-        //   console.log(
-        //     `There was an error copying file: ${directory}/${screenshot}`
-        //   );
-        // }
       });
     },
-    backupFile(filename) {
-      console.log("about to back up file: ", filename);
+    backupFile(filePath, gameName) {
+      const sourceFileName = filePath.substr(filePath.lastIndexOf("/") + 1);
 
-      // const folderName = this.settings.folderName
-      //           let destinationFolder = folderName.replace()
+      const destinationFolder = this.settings.folderName;
+
+      const splitFile = sourceFileName.split("-");
+      const dateStr = splitFile[0];
+      const gameId = splitFile[1];
+      const extension = gameId.split(".")[1];
+
+      const year = dateStr.substr(0, 4);
+      const month = dateStr.substr(4, 2);
+      const day = dateStr.substr(6, 2);
+      const time = dateStr.substr(8);
+
+      const type = extension === "jpg" ? "Images" : "Videos";
+      const cleanedGameName = gameName.replace(/[^A-Za-z0-9 -]/g, "");
+      const shortGameName = cleanedGameName.replace(/[ ]/g, "_");
+
+      let destinationFile = destinationFolder
+        .replace(/%year%/g, year)
+        .replace(/%month%/g, month)
+        .replace(/%day%/g, day)
+        .replace(/%time%/g, time)
+        .replace(/%type%/g, type)
+        .replace(/%titlefull%/g, cleanedGameName)
+        .replace(/%titleshort%/g, shortGameName)
+        .concat(`.${extension}`);
+
+      if (!destinationFile.startsWith("/")) {
+        destinationFile = `/${destinationFile}`;
+      }
+
+      const destinationPath = this.settings.outputDir + destinationFile;
+      const destinationDirectory = destinationPath.substr(
+        0,
+        destinationPath.lastIndexOf("/")
+      );
+
+      // console.log(filePath);
+      // console.log(destinationPath);
+
+      if (!fs.existsSync(destinationPath)) {
+        fs.mkdirSync(destinationDirectory, { recursive: true });
+        try {
+          fs.copyFileSync(filePath, destinationPath, COPYFILE_EXCL);
+        } catch (e) {
+          this.skippedFiles++;
+        }
+      }
     },
     filterFiles(filelist) {
       const fileTypes = [];
