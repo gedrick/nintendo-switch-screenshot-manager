@@ -1,38 +1,8 @@
 <template>
   <div id="app">
     <div class="container">
-      <SdCardDir></SdCardDir>
-
-      <div
-        class="card-panel valign-wrapper lighten-4 row"
-        :class="{ red: !settings.outputDir, green: settings.outputDir }"
-      >
-        <div class="col s1">
-          <label v-if="settings.outputDir">
-            <input type="checkbox" checked="checked" />
-            <span></span>
-          </label>
-        </div>
-        <div class="col s9">
-          <b v-if="!settings.outputDir" class="left">
-            Select the directory to save your screenshots
-          </b>
-          <p v-else class="left">
-            <b>Output Folder:</b> {{ settings.outputDir }}
-          </p>
-        </div>
-        <div class="col s2">
-          <button
-            @click="selectOutputDir"
-            class="waves-effect waves-light btn"
-            id="output-dir-btn"
-          >
-            <span v-if="!settings.outputDir">Select</span>
-            <span v-if="settings.outputDir">Change</span>
-          </button>
-        </div>
-      </div>
-
+      <SdCardDir />
+      <OutputDir />
       <div
         class="card-panel lighten-4"
         :class="{ red: !settings.folderName, green: settings.folderName }"
@@ -144,6 +114,7 @@ const path = require("path");
 
 import Progress from "./components/Progress.vue";
 import SdCardDir from "./components/SdCardDir.vue";
+import OutputDir from "./components/OutputDir.vue";
 import paths from "./paths.js";
 import axios from "axios";
 import { mapState, mapMutations } from "vuex";
@@ -152,7 +123,8 @@ export default {
   name: "App",
   components: {
     Progress,
-    SdCardDir
+    SdCardDir,
+    OutputDir
   },
   data() {
     return {
@@ -398,10 +370,6 @@ export default {
       ipcRenderer.on("setOutputDir", (event, directory) => {
         this.updateSetting({ setting: "outputDir", value: directory });
       });
-    },
-    selectOutputDir() {
-      this.error = null;
-      ipcRenderer.send("select-output-dir");
     }
   }
 };
