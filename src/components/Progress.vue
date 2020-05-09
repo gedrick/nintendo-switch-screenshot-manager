@@ -1,30 +1,10 @@
 <template>
-  <div class="container ">
-    <div class="sub-container card-panel">
-      <p>Importing file {{ doneFiles }} of {{ totalFiles }}</p>
-      <p v-if="skippedFiles">Skipped {{ skippedFiles }}</p>
+  <div class="container">
+    <div class="sub-container">
+      <slot />
     </div>
   </div>
 </template>
-
-<script>
-export default {
-  props: {
-    totalFiles: {
-      type: Number,
-      default: 0
-    },
-    doneFiles: {
-      type: Number,
-      default: 0
-    },
-    skippedFiles: {
-      type: Number,
-      default: 0
-    }
-  }
-};
-</script>
 
 <style lang="scss" scoped>
 .container {
@@ -47,5 +27,6 @@ export default {
   width: 50%;
   height: 50%;
   background-color: #fff;
+  flex-direction: column;
 }
 </style>

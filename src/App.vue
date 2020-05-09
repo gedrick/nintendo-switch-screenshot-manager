@@ -151,12 +151,16 @@
       </button>
     </div>
     <transition name="fade">
-      <Progress
-        v-if="inProgress"
-        :totalFiles="totalFiles"
-        :doneFiles="doneFiles"
-        :skippedFiles="skippedFiles"
-      />
+      <Progress v-if="inProgress">
+        <p>Importing file {{ doneFiles }} of {{ totalFiles }}</p>
+        <p v-if="skippedFiles">Skipped {{ skippedFiles }}</p>
+        <br />
+        <p>
+          <button class="waves-effect waves-light btn" @click="cancelImport">
+            Cancel
+          </button>
+        </p>
+      </Progress>
     </transition>
   </div>
 </template>
@@ -250,6 +254,12 @@ export default {
       "setGameIds",
       "addGameId"
     ]),
+    cancelImport() {
+      this.inProgress = false;
+      this.totalFiles = 0;
+      this.doneFiles = 0;
+      this.skippedFiles = 0;
+    },
     updateFolderName(settingName) {
       ipcRenderer.send("change-path", settingName, this.settings[settingName]);
     },
@@ -274,41 +284,46 @@ export default {
 
       this.inProgress = true;
 
-      // const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
-
-      // let allDirectories = [];
-      // const yearFolders = fs.readdirSync(sdCardDir);
-      // yearFolders.forEach(year => {
-      //   const yearFolder = `${sdCardDir}/${year}`;
-      //   const monthFolders = fs.readdirSync(yearFolder);
-      //   monthFolders.forEach(month => {
-      //     const monthFolder = `${sdCardDir}/${year}/${month}`;
-      //     const dayFolders = fs.readdirSync(monthFolder);
-      //     dayFolders.forEach(day => {
-      //       allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
-      //     });
-      //   });
-      // });
-
-      // this.processDirectories(allDirectories);
+      const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
+      let allDirectories = [];
+      const yearFolders = fs.readdirSync(sdCardDir);
+      yearFolders.forEach(year => {
+        const yearFolder = `${sdCardDir}/${year}`;
+        const monthFolders = fs.readdirSync(yearFolder);
+        monthFolders.forEach(month => {
+          const monthFolder = `${sdCardDir}/${year}/${month}`;
+          const dayFolders = fs.readdirSync(monthFolder);
+          dayFolders.forEach(day => {
+            allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
+          });
+        });
+      });
+      this.processDirectories(allDirectories);
     },
     processDirectories(directoryArray) {
+      let filteredFiles = [];
       directoryArray.forEach(directory => {
         const screenshotFiles = fs.readdirSync(directory);
-        const filteredFiles = this.filterFiles(screenshotFiles);
-        this.backupFiles(filteredFiles);
+        filteredFiles = filteredFiles.concat(this.filterFiles(screenshotFiles));
       });
+
+      this.totalFiles = filteredFiles.length;
+      this.backupFiles(filteredFiles);
     },
     backupFiles(filelist) {
       // let outputDir;
       filelist.forEach(screenshotFilename => {
         const gameName = this.getGameTitle(screenshotFilename);
-
         if (!gameName) {
           // Do this later
           // ipcRenderer.send('getFilename')
-          console.log("game name not found, skipping for now");
+          // console.log("game name not found, skipping for now");
+        } else {
+          this.backupFile(screenshotFilename);
         }
+
+        this.doneFiles++;
+
         // WORKFLOW:
         // check if the game name exists
         // else, show a prompt, write the id and title to it
@@ -332,6 +347,12 @@ export default {
         // }
       });
     },
+    backupFile(filename) {
+      console.log("about to back up file: ", filename);
+
+      // const folderName = this.settings.folderName
+      //           let destinationFolder = folderName.replace()
+    },
     filterFiles(filelist) {
       const fileTypes = [];
       if (this.types.images) {
@@ -350,10 +371,7 @@ export default {
     },
     getGameTitle(filename) {
       const file = filename.split("-");
-      console.log(file);
-
       const gameId = file[1].split(".")[0];
-
       const gameTitle = this.gameIds[gameId];
       return gameTitle || false;
     },
