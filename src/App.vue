@@ -1,36 +1,7 @@
 <template>
   <div id="app">
     <div class="container">
-      <div
-        class="card-panel valign-wrapper lighten-4 row"
-        :class="{ red: !settings.sdCardDir, green: settings.sdCardDir }"
-      >
-        <div class="col s1">
-          <label v-if="settings.sdCardDir">
-            <input type="checkbox" checked="checked" />
-            <span></span>
-          </label>
-        </div>
-        <div class="col s9">
-          <b v-if="!settings.sdCardDir" class="left">
-            Select the directory of your SD card
-          </b>
-          <p v-if="settings.sdCardDir" class="left">
-            <b>SD Card:</b> {{ settings.sdCardDir }}
-          </p>
-          <b v-if="sdCardError" class="red-text bold left">{{ sdCardError }}</b>
-        </div>
-        <div class="col s2">
-          <button
-            @click="selectSdCardDir"
-            class="waves-effect waves-light btn"
-            id="sd-dir-btn"
-          >
-            <span v-if="!settings.sdCardDir">Select</span>
-            <span v-if="settings.sdCardDir">Change</span>
-          </button>
-        </div>
-      </div>
+      <SdCardDir></SdCardDir>
 
       <div
         class="card-panel valign-wrapper lighten-4 row"
@@ -170,7 +141,9 @@ const { ipcRenderer } = require("electron");
 const fs = require("fs");
 const { COPYFILE_EXCL } = fs.constants;
 const path = require("path");
+
 import Progress from "./components/Progress.vue";
+import SdCardDir from "./components/SdCardDir.vue";
 import paths from "./paths.js";
 import axios from "axios";
 import { mapState, mapMutations } from "vuex";
@@ -178,7 +151,8 @@ import { mapState, mapMutations } from "vuex";
 export default {
   name: "App",
   components: {
-    Progress
+    Progress,
+    SdCardDir
   },
   data() {
     return {
@@ -192,8 +166,6 @@ export default {
       error: null,
       sdCardError: null,
       errors: {
-        invalidSdCardDir:
-          "Invalid SD card path - no Nintendo folder was found!",
         gameIdFetchError:
           "Something went wrong while downloading the game ID file. Please try again."
       },
@@ -213,7 +185,6 @@ export default {
     }
   },
   beforeDestroy() {
-    ipcRenderer.removeAllListeners("setSdCardDir");
     ipcRenderer.removeAllListeners("setOutputDir");
   },
   computed: {
@@ -424,20 +395,9 @@ export default {
       return gameTitle || false;
     },
     setupListeners() {
-      ipcRenderer.on("setSdCardDir", (event, directory) => {
-        if (!directory) {
-          this.error = this.errors.invalidSdCardDir;
-        } else {
-          this.updateSetting({ setting: "sdCardDir", value: directory });
-        }
-      });
       ipcRenderer.on("setOutputDir", (event, directory) => {
         this.updateSetting({ setting: "outputDir", value: directory });
       });
-    },
-    selectSdCardDir() {
-      this.error = null;
-      ipcRenderer.send("select-sd-card-dir");
     },
     selectOutputDir() {
       this.error = null;
