@@ -7,7 +7,8 @@ export default new Vuex.Store({
   state: {
     settings: {
       outputDir: null,
-      sdCardDir: null
+      sdCardDir: null,
+      folderName: "/%titlefull%/%type%/%titleshort%-%day%-%month%-%year%-%time%"
     },
     gameIds: {}
   },

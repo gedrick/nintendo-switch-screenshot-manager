@@ -15,7 +15,9 @@
           <b v-if="!settings.sdCardDir" class="left">
             Select the directory of your SD card
           </b>
-          <b v-if="settings.sdCardDir" class="left">{{ settings.sdCardDir }}</b>
+          <p v-if="settings.sdCardDir" class="left">
+            <b>SD Card:</b> {{ settings.sdCardDir }}
+          </p>
           <b v-if="error" class="red-text bold left">{{ error }}</b>
         </div>
         <div class="col s2">
@@ -44,7 +46,9 @@
           <b v-if="!settings.outputDir" class="left">
             Select the directory to save your screenshots
           </b>
-          <b v-else class="left">{{ settings.outputDir }}</b>
+          <p v-else class="left">
+            <b>Output Folder:</b> {{ settings.outputDir }}
+          </p>
         </div>
         <div class="col s2">
           <button
@@ -55,6 +59,47 @@
             <span v-if="!settings.outputDir">Select</span>
             <span v-if="settings.outputDir">Change</span>
           </button>
+        </div>
+      </div>
+
+      <div
+        class="card-panel lighten-4"
+        :class="{ red: !settings.folderName, green: settings.folderName }"
+      >
+        <div class="row valign-wrapper">
+          <div class="input-field col s10">
+            <input
+              id="folderName"
+              v-model="settings.folderName"
+              type="text"
+              class="validate"
+            />
+            <label for="folderName">Output Folder and File Name</label>
+          </div>
+          <div class="col s2">
+            <button
+              @click="updateFolderName('folderName')"
+              class="waves-effect waves-light btn"
+              id="output-dir-btn"
+            >
+              <span>Save</span>
+            </button>
+          </div>
+        </div>
+        <div class="row center">
+          {{ folderNamePreview }}
+        </div>
+        <div class="row center">
+          <div class="col s6">
+            <b>Date variables:</b><br />
+            %year%&nbsp;&nbsp;%month%<br />
+            %day%&nbsp;&nbsp;%time%
+          </div>
+          <div class="col s6">
+            <b>Other variables:</b><br />
+            %titlefull% %titleshort%<br />
+            %type% %number%
+          </div>
         </div>
       </div>
 
@@ -87,15 +132,20 @@
         </div>
       </div>
 
+      <div class="row">
+        <div class="col s12">
+          <div class="row center">
+            <b>Preview:</b><br />
+            {{ settings.outputDir }}{{ folderNamePreview }}
+          </div>
+        </div>
+      </div>
+
       <button
         class="waves-light btn-large"
         id="output-dir-btn"
         @click="beginImport"
-        :disabled="
-          !settings.outputDir ||
-            !settings.sdCardDir ||
-            (!types.images && !types.videos)
-        "
+        :disabled="!readyToImport"
       >
         Import
       </button>
@@ -107,7 +157,8 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 const path = require("path");
-// import axios from "axios";
+import axios from "axios";
+import gameIdPath from "./paths.js";
 import { mapState, mapMutations } from "vuex";
 
 export default {
@@ -117,7 +168,10 @@ export default {
       appPath: null,
       error: null,
       errors: {
-        invalidSdCardDir: "Invalid SD card path - no Nintendo folder was found!"
+        invalidSdCardDir:
+          "Invalid SD card path - no Nintendo folder was found!",
+        gameIdFetchError:
+          "Something went wrong while downloading the game ID file. Please try again."
       },
       types: {
         images: true,
@@ -134,8 +188,44 @@ export default {
       this.setSettings(JSON.parse(settings));
     }
   },
+  beforeDestroy() {
+    console.log("destroying listeners");
+    ipcRenderer.removeAllListeners("setSdCardDir");
+    ipcRenderer.removeAllListeners("setOutputDir");
+    console.log("destroyed listeners");
+  },
   computed: {
-    ...mapState(["settings", "gameIds"])
+    ...mapState(["settings", "gameIds"]),
+    readyToImport() {
+      return (
+        this.settings.outputDir &&
+        this.settings.sdCardDir &&
+        this.settings.folderName &&
+        (this.types.images || this.types.videos)
+      );
+    },
+    pathsAreValid() {
+      return false;
+    },
+    folderNamePreview() {
+      const folderName = this.settings.folderName;
+
+      if (!folderName) {
+        return false;
+      }
+
+      let newFolderName = folderName
+        .replace(/%year%/g, "2020")
+        .replace(/%month%/g, "03")
+        .replace(/%day%/g, "21")
+        .replace(/%time%/g, "2208")
+        .replace(/%titlefull%/g, "Super Mario Odyssey")
+        .replace(/%titleshort%/g, "Super_Mario_Odyssey")
+        .replace(/%type%/g, "Images")
+        .replace(/%number%/g, "03");
+
+      return `${newFolderName}.jpg`;
+    }
   },
   methods: {
     ...mapMutations([
@@ -144,15 +234,34 @@ export default {
       "setGameIds",
       "addGameId"
     ]),
-    importGameIds() {
-      const gameIdFile = fs.readFileSync(
-        path.dirname(process.execPath) + "/game_ids.json"
-      );
-      console.log(Object.values(JSON.parse(gameIdFile)));
-      this.setGameIds(JSON.parse(gameIdFile));
+    updateFolderName(settingName) {
+      ipcRenderer.send("change-path", settingName, this.settings[settingName]);
     },
-    beginImport() {
-      this.importGameIds();
+    async importGameIds() {
+      let res;
+      try {
+        res = await axios.json(gameIdPath);
+      } catch (e) {
+        return Promise.reject(e);
+      }
+
+      let { data } = res;
+      console.log(JSON.parse(data));
+      this.setGameIds(JSON.parse(data));
+
+      // const gameIdFile = fs.readFileSync(
+      //   path.dirname(process.execPath) + "/game_ids.json"
+      // );
+      // console.log(Object.values(JSON.parse(gameIdFile)));
+      // this.setGameIds(JSON.parse(gameIdFile));
+    },
+    async beginImport() {
+      try {
+        await this.importGameIds();
+      } catch (e) {
+        this.error = this.errors.gameIdFetchError;
+        return;
+      }
 
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
 
@@ -240,14 +349,14 @@ export default {
       return gameTitle || false;
     },
     setupListeners() {
-      ipcRenderer.addListener("setSdCardDir", (event, directory) => {
+      ipcRenderer.on("setSdCardDir", (event, directory) => {
         if (!directory) {
           this.error = this.errors.invalidSdCardDir;
         } else {
           this.updateSetting({ setting: "sdCardDir", value: directory });
         }
       });
-      ipcRenderer.addListener("setOutputDir", (event, directory) => {
+      ipcRenderer.on("setOutputDir", (event, directory) => {
         this.updateSetting({ setting: "outputDir", value: directory });
       });
     },

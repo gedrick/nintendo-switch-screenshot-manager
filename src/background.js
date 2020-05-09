@@ -52,7 +52,7 @@ function createWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 700,
-    height: 420,
+    height: 600,
     webPreferences: {
       nodeIntegration: true
     }
@@ -132,6 +132,10 @@ async function updateSettingsFile(key, newValue) {
     return Promise.reject(e);
   }
 }
+
+ipcMain.on("change-path", async (event, pathName, value) => {
+  await updateSettingsFile(pathName, value);
+});
 
 ipcMain.on("select-sd-card-dir", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
