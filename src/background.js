@@ -48,7 +48,7 @@ if (process.platform === "darwin") {
   mainMenuTemplate.unshift({});
 }
 
-function createWindow() {
+function createMainWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 700,
@@ -91,7 +91,7 @@ app.on("activate", () => {
   // On macOS it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   if (mainWindow === null) {
-    createWindow();
+    createMainWindow();
   }
 });
 
@@ -107,7 +107,7 @@ app.on("ready", async () => {
       console.error("Vue Devtools failed to install:", e.toString());
     }
   }
-  createWindow();
+  createMainWindow();
 });
 
 async function updateSettingsFile(key, newValue) {

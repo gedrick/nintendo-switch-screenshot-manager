@@ -150,6 +150,14 @@
         Import
       </button>
     </div>
+    <transition name="fade">
+      <Progress
+        v-if="inProgress"
+        :totalFiles="totalFiles"
+        :doneFiles="doneFiles"
+        :skippedFiles="skippedFiles"
+      />
+    </transition>
   </div>
 </template>
 
@@ -157,14 +165,23 @@
 const { ipcRenderer } = require("electron");
 const fs = require("fs");
 const path = require("path");
+import Progress from "./components/Progress.vue";
 import paths from "./paths.js";
 import axios from "axios";
 import { mapState, mapMutations } from "vuex";
 
 export default {
   name: "App",
+  components: {
+    Progress
+  },
   data() {
     return {
+      inProgress: false,
+      totalFiles: 0,
+      doneFiles: 0,
+      skippedFiles: 0,
+
       appPath: null,
       error: null,
       sdCardError: null,
@@ -190,10 +207,8 @@ export default {
     }
   },
   beforeDestroy() {
-    console.log("destroying listeners");
     ipcRenderer.removeAllListeners("setSdCardDir");
     ipcRenderer.removeAllListeners("setOutputDir");
-    console.log("destroyed listeners");
   },
   computed: {
     ...mapState(["settings", "gameIds"]),
@@ -257,6 +272,8 @@ export default {
         return;
       }
 
+      this.inProgress = true;
+
       // const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
 
       // let allDirectories = [];
@@ -315,7 +332,6 @@ export default {
         // }
       });
     },
-    // backupFile(to, from) {},
     filterFiles(filelist) {
       const fileTypes = [];
       if (this.types.images) {
@@ -368,6 +384,8 @@ export default {
 <style lang="scss">
 body {
   background-color: #e3f2fd;
+  font-family: BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu,
+    Cantarell, "Helvetica Neue", sans-serif;
 }
 
 #app {
@@ -377,5 +395,15 @@ body {
   text-align: center;
   color: #2c3e50;
   margin-top: 20px;
+}
+
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.5s;
+}
+
+.fade-enter,
+.fade-leave-to {
+  opacity: 0;
 }
 </style>
