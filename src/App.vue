@@ -107,10 +107,9 @@
 </template>
 
 <script>
-const { ipcRenderer } = require("electron");
+const { ipcRenderer, app } = require("electron");
 const fs = require("fs");
 const { COPYFILE_EXCL } = fs.constants;
-const path = require("path");
 
 import Progress from "./components/Progress.vue";
 import SdCardDir from "./components/SdCardDir.vue";
@@ -124,7 +123,7 @@ export default {
   components: {
     Progress,
     SdCardDir,
-    OutputDir
+    OutputDir,
   },
   data() {
     return {
@@ -139,20 +138,21 @@ export default {
       sdCardError: null,
       errors: {
         gameIdFetchError:
-          "Something went wrong while downloading the game ID file. Please try again."
+          "Something went wrong while downloading the game ID file. Please try again.",
       },
       types: {
         images: true,
-        videos: false
-      }
+        videos: false,
+      },
     };
   },
   mounted() {
-    const settings = fs.readFileSync(
-      path.dirname(process.execPath) + "/settings.json"
-    );
-    if (settings) {
+    let settings;
+    try {
+      settings = fs.readFileSync(app.getAppPath() + "/settings.json");
       this.setSettings(JSON.parse(settings));
+    } catch (e) {
+      console.log("No settings file exists.");
     }
   },
   beforeDestroy() {
@@ -189,14 +189,14 @@ export default {
         .replace(/%number%/g, "03");
 
       return `${newFolderName}.jpg`;
-    }
+    },
   },
   methods: {
     ...mapMutations([
       "setSettings",
       "updateSetting",
       "setGameIds",
-      "addGameId"
+      "addGameId",
     ]),
     cancelImport() {
       this.inProgress = false;
@@ -212,8 +212,8 @@ export default {
       const res = await axios(paths.gameIdPath, {
         method: "get",
         headers: {
-          "Content-Type": "application/json"
-        }
+          "Content-Type": "application/json",
+        },
       });
 
       let { data } = res;
@@ -232,13 +232,13 @@ export default {
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
       let allDirectories = [];
       const yearFolders = fs.readdirSync(sdCardDir);
-      yearFolders.forEach(year => {
+      yearFolders.forEach((year) => {
         const yearFolder = `${sdCardDir}/${year}`;
         const monthFolders = fs.readdirSync(yearFolder);
-        monthFolders.forEach(month => {
+        monthFolders.forEach((month) => {
           const monthFolder = `${sdCardDir}/${year}/${month}`;
           const dayFolders = fs.readdirSync(monthFolder);
-          dayFolders.forEach(day => {
+          dayFolders.forEach((day) => {
             allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
           });
         });
@@ -248,10 +248,10 @@ export default {
     },
     async processDirectories(directoryArray) {
       let filteredFiles = [];
-      directoryArray.forEach(directory => {
+      directoryArray.forEach((directory) => {
         const screenshotFiles = fs.readdirSync(directory);
         filteredFiles = filteredFiles.concat(
-          this.filterFiles(screenshotFiles).map(filename => {
+          this.filterFiles(screenshotFiles).map((filename) => {
             return `${directory}/${filename}`;
           })
         );
@@ -263,7 +263,7 @@ export default {
     },
     backupFiles(filelist) {
       // let outputDir;
-      filelist.forEach(screenshotFullPath => {
+      filelist.forEach((screenshotFullPath) => {
         if (this.inProgress) {
           const filename = screenshotFullPath.substring(
             screenshotFullPath.lastIndexOf("/") + 1
@@ -352,7 +352,7 @@ export default {
         fileTypes.push("mp4");
       }
 
-      const files = filelist.filter(filename => {
+      const files = filelist.filter((filename) => {
         const validType = fileTypes.includes(filename.split(".")[1]);
         const validName = filename.match(/^\d+-[A-Z\d]+\.(jpg|mp4)$/);
         return validType && validName;
@@ -364,8 +364,8 @@ export default {
       const gameId = file[1].split(".")[0];
       const gameTitle = this.gameIds[gameId];
       return gameTitle || false;
-    }
-  }
+    },
+  },
 };
 </script>
 
