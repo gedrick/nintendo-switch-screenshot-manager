@@ -1,5 +1,7 @@
 {
   "name": "nintendo-switch-screenshot-manager",
+  "author": "Geddy <g3ddylee@gmail.com>",
+  "description": "Automatically import screenshots and videos from your Nintendo Switch SD card.",
   "version": "0.1.0",
   "private": true,
   "scripts": {

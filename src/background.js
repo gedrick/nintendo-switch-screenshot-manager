@@ -44,10 +44,6 @@ const mainMenuTemplate = [
   }
 ];
 
-if (process.platform === "darwin") {
-  mainMenuTemplate.unshift({});
-}
-
 function createMainWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
