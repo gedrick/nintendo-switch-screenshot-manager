@@ -103,8 +103,9 @@ app.on("ready", async () => {
       console.error("Vue Devtools failed to install:", e.toString());
     }
   }
+  await importGameIds();
+  // await readSettings();
   createMainWindow();
-  importGameIds();
 });
 
 import axios from "axios";
@@ -140,6 +141,20 @@ async function importGameIds() {
     }
   }
 }
+
+// function readSettings() {
+//   try {
+//     const fileContents = fs.readFileSync(
+//       `${app.getPath("home")}/.nssm/settings.json`,
+//       "utf8"
+//     );
+//     console.log("got settings:", fileContents);
+
+//     ipcMain.send("settings", JSON.parse(fileContents));
+//   } catch (e) {
+//     // File doesn't exist.
+//   }
+// }
 
 function updateSettingsFile(key, newValue) {
   let filePath = `${app.getPath("home")}/.nssm/settings.json`;

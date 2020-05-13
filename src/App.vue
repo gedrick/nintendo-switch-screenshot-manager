@@ -107,9 +107,9 @@
 </template>
 
 <script>
-const { ipcRenderer, app } = require("electron");
+const { ipcRenderer } = require("electron");
 const fs = require("fs");
-const { COPYFILE_EXCL } = fs.constants;
+// const { COPYFILE_EXCL } = fs.constants;
 
 import Progress from "./components/Progress.vue";
 import SdCardDir from "./components/SdCardDir.vue";
@@ -130,10 +130,8 @@ export default {
       doneFiles: 0,
       skippedFiles: 0,
 
-      promiseChain: [],
-      appPath: null,
+      copyInstructions: [],
       error: null,
-      sdCardError: null,
       errors: {
         gameIdFetchError:
           "Something went wrong while downloading the game ID file. Please try again."
@@ -145,13 +143,11 @@ export default {
     };
   },
   mounted() {
-    let settings;
-    try {
-      settings = fs.readFileSync(app.getAppPath() + "/settings.json");
-      this.setSettings(JSON.parse(settings));
-    } catch (e) {
-      console.log("No settings file exists.");
-    }
+    this.loadSettings();
+
+    // ipcRenderer.on("settings", (event, settings) => {
+    //   this.setSettings(settings);
+    // });
   },
   beforeDestroy() {
     ipcRenderer.removeAllListeners("setOutputDir");
@@ -196,9 +192,23 @@ export default {
       "setGameIds",
       "addGameId"
     ]),
+    loadSettings() {
+      let settings;
+      console.log(this.electron);
+
+      try {
+        console.log(`${this.electron.getPath("home")}/.nssm/settings.json`);
+        settings = fs.readFile(
+          `${this.electron.getPath("home")}/.nssm/settings.json`
+        );
+        this.setSettings(JSON.parse(settings));
+      } catch (e) {
+        console.log("No settings file exists.", e);
+      }
+    },
     cancelImport() {
       this.inProgress = false;
-      this.promiseChain = [];
+      this.copyInstructions = [];
       this.totalFiles = 0;
       this.doneFiles = 0;
       this.skippedFiles = 0;
@@ -208,13 +218,12 @@ export default {
     },
     importGameIds() {
       const gameIds = fs.readFileSync(
-        app.getPath("home") + "/.nssm/game_ids.json"
+        this.electronApp.getPath("home") + "/.nssm/game_ids.json"
       );
       this.setGameIds(gameIds);
     },
     beginImport() {
       this.importGameIds();
-
       this.inProgress = true;
 
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
@@ -247,7 +256,7 @@ export default {
 
       this.totalFiles = filteredFiles.length;
       this.backupFiles(filteredFiles);
-      Promise.all(this.promiseChain);
+      console.log(this.copyInstructions);
     },
     backupFiles(filelist) {
       // let outputDir;
@@ -324,11 +333,17 @@ export default {
 
       if (!fs.existsSync(destinationPath)) {
         fs.mkdirSync(destinationDirectory, { recursive: true });
-        try {
-          fs.copyFileSync(filePath, destinationPath, COPYFILE_EXCL);
-        } catch (e) {
+        if (fs.existsSync(destinationPath)) {
           this.skippedFiles++;
+        } else {
+          this.copyInstructions.push({
+            file: filePath,
+            destination: destinationPath
+          });
         }
+        // try {
+        //   fs.copyFileSync(filePath, destinationPath, COPYFILE_EXCL);
+        // }
       }
     },
     filterFiles(filelist) {
