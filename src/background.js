@@ -4,7 +4,7 @@ import fs from "fs";
 import { app, protocol, BrowserWindow, Menu, ipcMain, dialog } from "electron";
 import {
   createProtocol,
-  installVueDevtools,
+  installVueDevtools
 } from "vue-cli-plugin-electron-builder/lib";
 const fsp = fs.promises;
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -15,7 +15,7 @@ let mainWindow;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
-  { scheme: "app", privileges: { secure: true, standard: true } },
+  { scheme: "app", privileges: { secure: true, standard: true } }
 ]);
 
 const mainMenuTemplate = [
@@ -27,20 +27,20 @@ const mainMenuTemplate = [
         accelerator: process.platform === "darwin" ? "Cmd+O" : "Ctrl+O",
         click() {
           console.log("open output folder!");
-        },
+        }
       },
       {
-        type: "separator",
+        type: "separator"
       },
       {
         label: "Quit",
         accelerator: process.platform === "darwin" ? "Cmd+Q" : "Ctrl+Q",
         click() {
           app.quit();
-        },
-      },
-    ],
-  },
+        }
+      }
+    ]
+  }
 ];
 
 function createMainWindow() {
@@ -50,8 +50,8 @@ function createMainWindow() {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      enableRemoteModule: true,
-    },
+      enableRemoteModule: true
+    }
   });
 
   Menu.buildFromTemplate(mainMenuTemplate);
@@ -104,26 +104,58 @@ app.on("ready", async () => {
     }
   }
   createMainWindow();
+  importGameIds();
 });
 
-async function updateSettingsFile(key, newValue) {
-  console.log("updatesettingfiles()");
+import axios from "axios";
+import paths from "./paths.js";
+async function importGameIds() {
+  const res = await axios(paths.gameIdPath, {
+    method: "get",
+    headers: {
+      "Content-Type": "application/json"
+    }
+  });
+  const { data } = res;
+  const filePath = `${app.getPath("home")}/.nssm/game_ids.json`;
+  let fileContents;
 
-  console.log("trying to save file", app.getAppPath() + "/settings.json");
+  if (fs.existsSync(filePath)) {
+    fileContents = await fsp.readFile(filePath);
+    const oldGameMap = JSON.parse(fileContents);
+    const newGameMap = data;
+    console.log("trying to update game id map", filePath);
+    const newJson = {
+      ...newGameMap,
+      ...oldGameMap
+    };
+    await fsp.writeFile(filePath, JSON.stringify(newJson, null, 2), "utf8");
+  } else {
+    console.log("trying to set game id map", filePath);
+    try {
+      await fsp.mkdir(`${app.getPath("home")}/.nssm/`, { recursive: true });
+      await fsp.writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
+    } catch (e) {
+      console.log(e);
+    }
+  }
+}
 
-  let filePath = app.getAppPath() + "/settings.json";
+function updateSettingsFile(key, newValue) {
+  let filePath = `${app.getPath("home")}/.nssm/settings.json`;
+  console.log("trying to save file", filePath);
   let fileContents;
   let fileJson = {};
 
   if (fs.existsSync(filePath)) {
-    fileContents = await fsp.readFile(filePath);
+    fileContents = fs.readFileSync(filePath);
     fileJson = JSON.parse(fileContents);
   }
 
   fileJson[key] = newValue;
 
   try {
-    return await fsp.writeFile(
+    return fs.writeFileSync(
       filePath,
       JSON.stringify(fileJson, null, 2),
       "utf8"
@@ -134,13 +166,13 @@ async function updateSettingsFile(key, newValue) {
 }
 
 ipcMain.on("change-path", async (event, pathName, value) => {
-  await updateSettingsFile(pathName, value);
+  updateSettingsFile(pathName, value);
 });
 
 ipcMain.on("select-sd-card-dir", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     title: "SD Card Directory",
-    properties: ["openDirectory"],
+    properties: ["openDirectory"]
   });
 
   let newPath;
@@ -165,7 +197,7 @@ ipcMain.on("select-sd-card-dir", async () => {
 ipcMain.on("select-output-dir", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     title: "Output Directory",
-    properties: ["openDirectory"],
+    properties: ["openDirectory"]
   });
 
   let newPath;
@@ -186,7 +218,7 @@ ipcMain.on("select-output-dir", async () => {
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
   if (process.platform === "win32") {
-    process.on("message", (data) => {
+    process.on("message", data => {
       if (data === "graceful-exit") {
         app.quit();
       }

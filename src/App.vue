@@ -114,8 +114,6 @@ const { COPYFILE_EXCL } = fs.constants;
 import Progress from "./components/Progress.vue";
 import SdCardDir from "./components/SdCardDir.vue";
 import OutputDir from "./components/OutputDir.vue";
-import paths from "./paths.js";
-import axios from "axios";
 import { mapState, mapMutations } from "vuex";
 
 export default {
@@ -123,7 +121,7 @@ export default {
   components: {
     Progress,
     SdCardDir,
-    OutputDir,
+    OutputDir
   },
   data() {
     return {
@@ -138,12 +136,12 @@ export default {
       sdCardError: null,
       errors: {
         gameIdFetchError:
-          "Something went wrong while downloading the game ID file. Please try again.",
+          "Something went wrong while downloading the game ID file. Please try again."
       },
       types: {
         images: true,
-        videos: false,
-      },
+        videos: false
+      }
     };
   },
   mounted() {
@@ -189,14 +187,14 @@ export default {
         .replace(/%number%/g, "03");
 
       return `${newFolderName}.jpg`;
-    },
+    }
   },
   methods: {
     ...mapMutations([
       "setSettings",
       "updateSetting",
       "setGameIds",
-      "addGameId",
+      "addGameId"
     ]),
     cancelImport() {
       this.inProgress = false;
@@ -208,37 +206,27 @@ export default {
     updateFolderName(settingName) {
       ipcRenderer.send("change-path", settingName, this.settings[settingName]);
     },
-    async importGameIds() {
-      const res = await axios(paths.gameIdPath, {
-        method: "get",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      let { data } = res;
-      this.setGameIds(data);
+    importGameIds() {
+      const gameIds = fs.readFileSync(
+        app.getPath("home") + "/.nssm/game_ids.json"
+      );
+      this.setGameIds(gameIds);
     },
-    async beginImport() {
-      try {
-        await this.importGameIds();
-      } catch (e) {
-        this.sdCardError = this.errors.gameIdFetchError;
-        return;
-      }
+    beginImport() {
+      this.importGameIds();
 
       this.inProgress = true;
 
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
       let allDirectories = [];
       const yearFolders = fs.readdirSync(sdCardDir);
-      yearFolders.forEach((year) => {
+      yearFolders.forEach(year => {
         const yearFolder = `${sdCardDir}/${year}`;
         const monthFolders = fs.readdirSync(yearFolder);
-        monthFolders.forEach((month) => {
+        monthFolders.forEach(month => {
           const monthFolder = `${sdCardDir}/${year}/${month}`;
           const dayFolders = fs.readdirSync(monthFolder);
-          dayFolders.forEach((day) => {
+          dayFolders.forEach(day => {
             allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
           });
         });
@@ -246,12 +234,12 @@ export default {
 
       this.processDirectories(allDirectories);
     },
-    async processDirectories(directoryArray) {
+    processDirectories(directoryArray) {
       let filteredFiles = [];
-      directoryArray.forEach((directory) => {
+      directoryArray.forEach(directory => {
         const screenshotFiles = fs.readdirSync(directory);
         filteredFiles = filteredFiles.concat(
-          this.filterFiles(screenshotFiles).map((filename) => {
+          this.filterFiles(screenshotFiles).map(filename => {
             return `${directory}/${filename}`;
           })
         );
@@ -259,11 +247,11 @@ export default {
 
       this.totalFiles = filteredFiles.length;
       this.backupFiles(filteredFiles);
-      await Promise.all(this.promiseChain);
+      Promise.all(this.promiseChain);
     },
     backupFiles(filelist) {
       // let outputDir;
-      filelist.forEach((screenshotFullPath) => {
+      filelist.forEach(screenshotFullPath => {
         if (this.inProgress) {
           const filename = screenshotFullPath.substring(
             screenshotFullPath.lastIndexOf("/") + 1
@@ -352,7 +340,7 @@ export default {
         fileTypes.push("mp4");
       }
 
-      const files = filelist.filter((filename) => {
+      const files = filelist.filter(filename => {
         const validType = fileTypes.includes(filename.split(".")[1]);
         const validName = filename.match(/^\d+-[A-Z\d]+\.(jpg|mp4)$/);
         return validType && validName;
@@ -364,8 +352,8 @@ export default {
       const gameId = file[1].split(".")[0];
       const gameTitle = this.gameIds[gameId];
       return gameTitle || false;
-    },
-  },
+    }
+  }
 };
 </script>
 
