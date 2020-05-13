@@ -4,7 +4,7 @@ import fs from "fs";
 import { app, protocol, BrowserWindow, Menu, ipcMain, dialog } from "electron";
 import {
   createProtocol,
-  installVueDevtools
+  installVueDevtools,
 } from "vue-cli-plugin-electron-builder/lib";
 const fsp = fs.promises;
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -15,7 +15,7 @@ let mainWindow;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
-  { scheme: "app", privileges: { secure: true, standard: true } }
+  { scheme: "app", privileges: { secure: true, standard: true } },
 ]);
 
 const mainMenuTemplate = [
@@ -27,20 +27,20 @@ const mainMenuTemplate = [
         accelerator: process.platform === "darwin" ? "Cmd+O" : "Ctrl+O",
         click() {
           console.log("open output folder!");
-        }
+        },
       },
       {
-        type: "separator"
+        type: "separator",
       },
       {
         label: "Quit",
         accelerator: process.platform === "darwin" ? "Cmd+Q" : "Ctrl+Q",
         click() {
           app.quit();
-        }
-      }
-    ]
-  }
+        },
+      },
+    ],
+  },
 ];
 
 function createMainWindow() {
@@ -50,8 +50,8 @@ function createMainWindow() {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      enableRemoteModule: true
-    }
+      enableRemoteModule: true,
+    },
   });
 
   Menu.buildFromTemplate(mainMenuTemplate);
@@ -104,7 +104,6 @@ app.on("ready", async () => {
     }
   }
   await importGameIds();
-  // await readSettings();
   createMainWindow();
 });
 
@@ -114,8 +113,8 @@ async function importGameIds() {
   const res = await axios(paths.gameIdPath, {
     method: "get",
     headers: {
-      "Content-Type": "application/json"
-    }
+      "Content-Type": "application/json",
+    },
   });
   const { data } = res;
   const filePath = `${app.getPath("home")}/.nssm/game_ids.json`;
@@ -128,7 +127,7 @@ async function importGameIds() {
     console.log("trying to update game id map", filePath);
     const newJson = {
       ...newGameMap,
-      ...oldGameMap
+      ...oldGameMap,
     };
     await fsp.writeFile(filePath, JSON.stringify(newJson, null, 2), "utf8");
   } else {
@@ -142,19 +141,17 @@ async function importGameIds() {
   }
 }
 
-// function readSettings() {
-//   try {
-//     const fileContents = fs.readFileSync(
-//       `${app.getPath("home")}/.nssm/settings.json`,
-//       "utf8"
-//     );
-//     console.log("got settings:", fileContents);
-
-//     ipcMain.send("settings", JSON.parse(fileContents));
-//   } catch (e) {
-//     // File doesn't exist.
-//   }
-// }
+ipcMain.on("read-settings", async (event) => {
+  const filePath = `${app.getPath("home")}/.nssm/settings.json`;
+  try {
+    const fileContents = fs.readFileSync(filePath, "utf8");
+    const settingsObj = JSON.parse(fileContents);
+    event.sender.send("receive-settings", settingsObj);
+  } catch (e) {
+    event.sender.send("receive-settings", {});
+    // File doesn't exist.
+  }
+});
 
 function updateSettingsFile(key, newValue) {
   let filePath = `${app.getPath("home")}/.nssm/settings.json`;
@@ -187,7 +184,7 @@ ipcMain.on("change-path", async (event, pathName, value) => {
 ipcMain.on("select-sd-card-dir", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     title: "SD Card Directory",
-    properties: ["openDirectory"]
+    properties: ["openDirectory"],
   });
 
   let newPath;
@@ -212,7 +209,7 @@ ipcMain.on("select-sd-card-dir", async () => {
 ipcMain.on("select-output-dir", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     title: "Output Directory",
-    properties: ["openDirectory"]
+    properties: ["openDirectory"],
   });
 
   let newPath;
@@ -233,7 +230,7 @@ ipcMain.on("select-output-dir", async () => {
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
   if (process.platform === "win32") {
-    process.on("message", data => {
+    process.on("message", (data) => {
       if (data === "graceful-exit") {
         app.quit();
       }

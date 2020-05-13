@@ -107,13 +107,13 @@
 </template>
 
 <script>
-const { ipcRenderer } = require("electron");
-const fs = require("fs");
 // const { COPYFILE_EXCL } = fs.constants;
+const fs = require("fs");
 
 import Progress from "./components/Progress.vue";
 import SdCardDir from "./components/SdCardDir.vue";
 import OutputDir from "./components/OutputDir.vue";
+import { ipcRenderer, app } from "electron";
 import { mapState, mapMutations } from "vuex";
 
 export default {
@@ -121,7 +121,7 @@ export default {
   components: {
     Progress,
     SdCardDir,
-    OutputDir
+    OutputDir,
   },
   data() {
     return {
@@ -134,20 +134,21 @@ export default {
       error: null,
       errors: {
         gameIdFetchError:
-          "Something went wrong while downloading the game ID file. Please try again."
+          "Something went wrong while downloading the game ID file. Please try again.",
       },
       types: {
         images: true,
-        videos: false
-      }
+        videos: false,
+      },
     };
   },
   mounted() {
-    this.loadSettings();
-
-    // ipcRenderer.on("settings", (event, settings) => {
-    //   this.setSettings(settings);
-    // });
+    ipcRenderer.send("read-settings");
+    ipcRenderer.once("receive-settings", (event, settings) => {
+      if (settings) {
+        this.setSettings(settings);
+      }
+    });
   },
   beforeDestroy() {
     ipcRenderer.removeAllListeners("setOutputDir");
@@ -183,29 +184,15 @@ export default {
         .replace(/%number%/g, "03");
 
       return `${newFolderName}.jpg`;
-    }
+    },
   },
   methods: {
     ...mapMutations([
       "setSettings",
       "updateSetting",
       "setGameIds",
-      "addGameId"
+      "addGameId",
     ]),
-    loadSettings() {
-      let settings;
-      console.log(this.electron);
-
-      try {
-        console.log(`${this.electron.getPath("home")}/.nssm/settings.json`);
-        settings = fs.readFile(
-          `${this.electron.getPath("home")}/.nssm/settings.json`
-        );
-        this.setSettings(JSON.parse(settings));
-      } catch (e) {
-        console.log("No settings file exists.", e);
-      }
-    },
     cancelImport() {
       this.inProgress = false;
       this.copyInstructions = [];
@@ -218,7 +205,7 @@ export default {
     },
     importGameIds() {
       const gameIds = fs.readFileSync(
-        this.electronApp.getPath("home") + "/.nssm/game_ids.json"
+        app.getPath("home") + "/.nssm/game_ids.json"
       );
       this.setGameIds(gameIds);
     },
@@ -229,13 +216,13 @@ export default {
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
       let allDirectories = [];
       const yearFolders = fs.readdirSync(sdCardDir);
-      yearFolders.forEach(year => {
+      yearFolders.forEach((year) => {
         const yearFolder = `${sdCardDir}/${year}`;
         const monthFolders = fs.readdirSync(yearFolder);
-        monthFolders.forEach(month => {
+        monthFolders.forEach((month) => {
           const monthFolder = `${sdCardDir}/${year}/${month}`;
           const dayFolders = fs.readdirSync(monthFolder);
-          dayFolders.forEach(day => {
+          dayFolders.forEach((day) => {
             allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
           });
         });
@@ -245,10 +232,10 @@ export default {
     },
     processDirectories(directoryArray) {
       let filteredFiles = [];
-      directoryArray.forEach(directory => {
+      directoryArray.forEach((directory) => {
         const screenshotFiles = fs.readdirSync(directory);
         filteredFiles = filteredFiles.concat(
-          this.filterFiles(screenshotFiles).map(filename => {
+          this.filterFiles(screenshotFiles).map((filename) => {
             return `${directory}/${filename}`;
           })
         );
@@ -260,7 +247,7 @@ export default {
     },
     backupFiles(filelist) {
       // let outputDir;
-      filelist.forEach(screenshotFullPath => {
+      filelist.forEach((screenshotFullPath) => {
         if (this.inProgress) {
           const filename = screenshotFullPath.substring(
             screenshotFullPath.lastIndexOf("/") + 1
@@ -338,7 +325,7 @@ export default {
         } else {
           this.copyInstructions.push({
             file: filePath,
-            destination: destinationPath
+            destination: destinationPath,
           });
         }
         // try {
@@ -355,7 +342,7 @@ export default {
         fileTypes.push("mp4");
       }
 
-      const files = filelist.filter(filename => {
+      const files = filelist.filter((filename) => {
         const validType = fileTypes.includes(filename.split(".")[1]);
         const validName = filename.match(/^\d+-[A-Z\d]+\.(jpg|mp4)$/);
         return validType && validName;
@@ -367,8 +354,8 @@ export default {
       const gameId = file[1].split(".")[0];
       const gameTitle = this.gameIds[gameId];
       return gameTitle || false;
-    }
-  }
+    },
+  },
 };
 </script>
 
