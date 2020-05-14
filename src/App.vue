@@ -107,13 +107,12 @@
 </template>
 
 <script>
-// const { COPYFILE_EXCL } = fs.constants;
 const fs = require("fs");
 
 import Progress from "./components/Progress.vue";
 import SdCardDir from "./components/SdCardDir.vue";
 import OutputDir from "./components/OutputDir.vue";
-import { ipcRenderer, app } from "electron";
+import { ipcRenderer } from "electron";
 import { mapState, mapMutations } from "vuex";
 
 export default {
@@ -121,7 +120,7 @@ export default {
   components: {
     Progress,
     SdCardDir,
-    OutputDir,
+    OutputDir
   },
   data() {
     return {
@@ -134,12 +133,12 @@ export default {
       error: null,
       errors: {
         gameIdFetchError:
-          "Something went wrong while downloading the game ID file. Please try again.",
+          "Something went wrong while downloading the game ID file. Please try again."
       },
       types: {
         images: true,
-        videos: false,
-      },
+        videos: false
+      }
     };
   },
   mounted() {
@@ -184,18 +183,17 @@ export default {
         .replace(/%number%/g, "03");
 
       return `${newFolderName}.jpg`;
-    },
+    }
   },
   methods: {
     ...mapMutations([
       "setSettings",
       "updateSetting",
       "setGameIds",
-      "addGameId",
+      "addGameId"
     ]),
     cancelImport() {
       this.inProgress = false;
-      this.copyInstructions = [];
       this.totalFiles = 0;
       this.doneFiles = 0;
       this.skippedFiles = 0;
@@ -204,10 +202,13 @@ export default {
       ipcRenderer.send("change-path", settingName, this.settings[settingName]);
     },
     importGameIds() {
+      // TODO: STILL NEED TO FIGURE OUT THIS SHIT
+      // PROCESS.ENV IS ONLY VALID WHEN I CONSOLE LOG IT!?
       const gameIds = fs.readFileSync(
-        app.getPath("home") + "/.nssm/game_ids.json"
+        `/home/chris/.nssm/game_ids.json`,
+        "utf8"
       );
-      this.setGameIds(gameIds);
+      this.setGameIds(JSON.parse(gameIds));
     },
     beginImport() {
       this.importGameIds();
@@ -216,13 +217,13 @@ export default {
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
       let allDirectories = [];
       const yearFolders = fs.readdirSync(sdCardDir);
-      yearFolders.forEach((year) => {
+      yearFolders.forEach(year => {
         const yearFolder = `${sdCardDir}/${year}`;
         const monthFolders = fs.readdirSync(yearFolder);
-        monthFolders.forEach((month) => {
+        monthFolders.forEach(month => {
           const monthFolder = `${sdCardDir}/${year}/${month}`;
           const dayFolders = fs.readdirSync(monthFolder);
-          dayFolders.forEach((day) => {
+          dayFolders.forEach(day => {
             allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
           });
         });
@@ -232,10 +233,10 @@ export default {
     },
     processDirectories(directoryArray) {
       let filteredFiles = [];
-      directoryArray.forEach((directory) => {
+      directoryArray.forEach(directory => {
         const screenshotFiles = fs.readdirSync(directory);
         filteredFiles = filteredFiles.concat(
-          this.filterFiles(screenshotFiles).map((filename) => {
+          this.filterFiles(screenshotFiles).map(filename => {
             return `${directory}/${filename}`;
           })
         );
@@ -243,11 +244,11 @@ export default {
 
       this.totalFiles = filteredFiles.length;
       this.backupFiles(filteredFiles);
-      console.log(this.copyInstructions);
+      ipcRenderer.send("copy-files", this.copyInstructions);
     },
     backupFiles(filelist) {
       // let outputDir;
-      filelist.forEach((screenshotFullPath) => {
+      filelist.forEach(screenshotFullPath => {
         if (this.inProgress) {
           const filename = screenshotFullPath.substring(
             screenshotFullPath.lastIndexOf("/") + 1
@@ -255,10 +256,12 @@ export default {
 
           const gameName = this.getGameTitle(filename);
           if (!gameName) {
-            // Do this later
-            // ipcRenderer.send('no-matching-game')
-            // console.log("game name not found, skipping for now");
+            // TODO: Do this later
+            console.log(`Game mapping not found for ${filename}.`);
+            const gameId = this.getGameIdFromFileName(filename);
+            ipcRenderer.send("addGameId", gameId, "");
           } else {
+            console.log(`Backing up screenshot for ${gameName}`);
             this.backupFile(screenshotFullPath, gameName);
           }
         }
@@ -278,7 +281,6 @@ export default {
     },
     backupFile(filePath, gameName) {
       const sourceFileName = filePath.substr(filePath.lastIndexOf("/") + 1);
-
       const destinationFolder = this.settings.folderName;
 
       const splitFile = sourceFileName.split("-");
@@ -315,9 +317,6 @@ export default {
         destinationPath.lastIndexOf("/")
       );
 
-      // console.log(filePath);
-      // console.log(destinationPath);
-
       if (!fs.existsSync(destinationPath)) {
         fs.mkdirSync(destinationDirectory, { recursive: true });
         if (fs.existsSync(destinationPath)) {
@@ -325,13 +324,15 @@ export default {
         } else {
           this.copyInstructions.push({
             file: filePath,
-            destination: destinationPath,
+            destination: destinationPath
           });
         }
-        // try {
-        //   fs.copyFileSync(filePath, destinationPath, COPYFILE_EXCL);
-        // }
       }
+    },
+    getGameIdFromFileName(fileName) {
+      let gameId = fileName.substr(fileName.indexOf("-") + 1);
+      gameId = gameId.substr(0, gameId.length - 4);
+      return gameId;
     },
     filterFiles(filelist) {
       const fileTypes = [];
@@ -342,7 +343,7 @@ export default {
         fileTypes.push("mp4");
       }
 
-      const files = filelist.filter((filename) => {
+      const files = filelist.filter(filename => {
         const validType = fileTypes.includes(filename.split(".")[1]);
         const validName = filename.match(/^\d+-[A-Z\d]+\.(jpg|mp4)$/);
         return validType && validName;
@@ -354,8 +355,8 @@ export default {
       const gameId = file[1].split(".")[0];
       const gameTitle = this.gameIds[gameId];
       return gameTitle || false;
-    },
-  },
+    }
+  }
 };
 </script>
 

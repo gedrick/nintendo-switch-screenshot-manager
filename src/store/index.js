@@ -8,17 +8,16 @@ export default new Vuex.Store({
     settings: {
       outputDir: null,
       sdCardDir: null,
-      folderName:
-        "/%titlefull%/%type%/%titleshort%-%day%-%month%-%year%-%time%",
+      folderName: "/%titlefull%/%type%/%titleshort%-%day%-%month%-%year%-%time%"
     },
-    gameIds: {},
+    gameIds: {}
   },
   mutations: {
     setSettings(state, newSettings) {
       const currentSettings = state.settings;
       Vue.set(state, "settings", {
         ...currentSettings,
-        ...newSettings,
+        ...newSettings
       });
     },
     updateSetting(state, { setting, value }) {
@@ -29,8 +28,8 @@ export default new Vuex.Store({
     },
     addGameId(state, { gameId, gameName }) {
       Vue.set(state.gameIds, gameId, gameName);
-    },
+    }
   },
   actions: {},
-  modules: {},
+  modules: {}
 });
