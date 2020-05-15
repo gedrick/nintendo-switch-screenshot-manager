@@ -6,10 +6,10 @@
     <div class="row valign-wrapper input-block">
       <div class="input-field col s10">
         <input
+          ref="folderName"
           id="folderName"
           v-model="settings.folderName"
           type="text"
-          class="validate"
         />
         <label for="folderName">Output Folder and File Name</label>
       </div>
@@ -47,6 +47,10 @@ import { ipcRenderer } from "electron";
 
 export default {
   name: "FileName",
+  mounted() {
+    this.$refs.folderName.focus();
+    this.$refs.folderName.blur();
+  },
   computed: {
     ...mapState(["settings"]),
     folderNamePreview() {
@@ -67,13 +71,13 @@ export default {
         .replace(/%number%/g, "03");
 
       return `${newFolderName}.jpg`;
-    },
+    }
   },
   methods: {
     updateFolderName(settingName) {
       ipcRenderer.send("change-path", settingName, this.settings[settingName]);
-    },
-  },
+    }
+  }
 };
 </script>
 

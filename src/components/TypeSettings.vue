@@ -3,7 +3,7 @@
     class="card-panel center lighten-4 valign-wrapper row"
     :class="{
       red: !settings.types.images && !settings.types.videos,
-      green: settings.types.images || settings.types.videos,
+      green: settings.types.images || settings.types.videos
     }"
   >
     <div class="col s5">
@@ -41,7 +41,7 @@ import { mapState } from "vuex";
 export default {
   name: "TypeSettings",
   computed: {
-    ...mapState(["settings"]),
-  },
+    ...mapState(["settings"])
+  }
 };
 </script>

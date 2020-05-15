@@ -12,17 +12,17 @@ export default new Vuex.Store({
         "/%titlefull%/%type%/%titleshort%-%day%-%month%-%year%-%time%",
       types: {
         images: true,
-        videos: false,
-      },
+        videos: false
+      }
     },
-    gameIds: {},
+    gameIds: {}
   },
   mutations: {
     setSettings(state, newSettings) {
       const currentSettings = state.settings;
       Vue.set(state, "settings", {
         ...currentSettings,
-        ...newSettings,
+        ...newSettings
       });
     },
 
@@ -34,8 +34,8 @@ export default new Vuex.Store({
     },
     addGameId(state, { gameId, gameName }) {
       Vue.set(state.gameIds, gameId, gameName);
-    },
+    }
   },
   actions: {},
-  modules: {},
+  modules: {}
 });

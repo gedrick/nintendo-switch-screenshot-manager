@@ -3,13 +3,7 @@
     class="card-panel valign-wrapper lighten-4 row"
     :class="{ red: !settings.sdCardDir, green: settings.sdCardDir }"
   >
-    <div class="col s1">
-      <label v-if="settings.sdCardDir">
-        <input type="checkbox" checked="checked" />
-        <span></span>
-      </label>
-    </div>
-    <div class="col s9">
+    <div class="col s10">
       <b v-if="!settings.sdCardDir" class="left">
         Select the directory of your SD card
       </b>

@@ -3,13 +3,7 @@
     class="card-panel valign-wrapper lighten-4 row"
     :class="{ red: !settings.outputDir, green: settings.outputDir }"
   >
-    <div class="col s1">
-      <label v-if="settings.outputDir">
-        <input type="checkbox" checked="checked" />
-        <span></span>
-      </label>
-    </div>
-    <div class="col s9">
+    <div class="col s10">
       <b v-if="!settings.outputDir" class="left">
         Select the directory to save your screenshots
       </b>
