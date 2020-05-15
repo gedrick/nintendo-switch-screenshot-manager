@@ -3,7 +3,7 @@
     class="card-panel lighten-4"
     :class="{ red: !settings.folderName, green: settings.folderName }"
   >
-    <div class="row valign-wrapper">
+    <div class="row valign-wrapper input-block">
       <div class="input-field col s10">
         <input
           id="folderName"
@@ -76,3 +76,9 @@ export default {
   },
 };
 </script>
+
+<style lang="scss" scoped>
+.input-block {
+  margin-bottom: 0;
+}
+</style>

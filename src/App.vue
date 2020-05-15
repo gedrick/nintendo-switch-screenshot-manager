@@ -14,15 +14,24 @@
           </div>
         </div>
       </div> -->
-
-      <button
-        class="waves-light btn-large"
-        id="output-dir-btn"
-        @click="beginImport"
-        :disabled="!readyToImport"
-      >
-        Import
-      </button>
+      <div class="buttons">
+        <button
+          class="waves-light btn-large"
+          id="output-dir-btn"
+          @click="beginImport"
+          :disabled="!readyToImport"
+        >
+          Preview
+        </button>
+        <button
+          class="waves-light btn-large"
+          id="output-dir-btn"
+          @click="beginImport(false)"
+          :disabled="!readyToImport"
+        >
+          Import
+        </button>
+      </div>
     </div>
     <!-- <Resolve v-if="inResolveMode" :unknownGameIds="unknownGameIds" /> -->
     <!-- <button v-if="inResolveMode" @click="inResolveMode = false">Cancel</button> -->
@@ -66,7 +75,7 @@ export default {
   data() {
     return {
       inResolveMode: false,
-      // inProgress: false,
+      inProgress: false,
       totalFiles: 0,
       doneFiles: 0,
       skippedFiles: 0,
@@ -128,7 +137,7 @@ export default {
       );
       this.setGameIds(JSON.parse(gameIds));
     },
-    beginImport() {
+    beginImport(dryRun = true) {
       this.importGameIds();
       this.inProgress = true;
 
@@ -148,6 +157,19 @@ export default {
       });
 
       this.processDirectories(allDirectories);
+
+      if (this.unknownGameIds.length) {
+        this.inResolveMode = true;
+      }
+
+      if (dryRun) {
+        ipcRenderer.send("copy-files", this.copyInstructions);
+        ipcRenderer.once("files-copied", () => {
+          if (this.unknownGameIds.length) {
+            console.log("some files were unknown");
+          }
+        });
+      }
     },
     processDirectories(directoryArray) {
       let filteredFiles = [];
@@ -161,20 +183,9 @@ export default {
       });
 
       this.totalFiles = filteredFiles.length;
-      this.backupFiles(filteredFiles);
-      if (this.unknownGameIds.length) {
-        this.inResolveMode = true;
-      }
-
-      ipcRenderer.send("copy-files", this.copyInstructions);
-      ipcRenderer.once("files-copied", () => {
-        if (this.unknownGameIds.length) {
-          console.log("some files were unknown");
-        }
-      });
+      this.generateInstructions(filteredFiles);
     },
-    backupFiles(filelist) {
-      // let outputDir;
+    generateInstructions(filelist) {
       filelist.forEach((screenshotFullPath) => {
         const filename = screenshotFullPath.substring(
           screenshotFullPath.lastIndexOf("/") + 1
@@ -308,5 +319,10 @@ body {
 
 .card-panel {
   padding: 5px 10px;
+}
+
+.buttons {
+  display: flex;
+  justify-content: space-evenly;
 }
 </style>
