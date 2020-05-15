@@ -199,7 +199,6 @@ export default {
           if (!this.unknownGameIds.find(gameObj => gameObj.gameId === gameId)) {
             this.unknownGameIds.push({ gameId, screenshotFullPath });
           }
-          this.backupFile(screenshotFullPath, "Unknown");
         } else {
           console.log(`Backing up screenshot for ${gameName}`);
           this.backupFile(screenshotFullPath, gameName);
