@@ -73,14 +73,14 @@
         </div>
       </div>
 
-      <div class="row">
+      <!-- <div class="row">
         <div class="col s12">
           <div class="row center">
             <b>Preview:</b><br />
             {{ settings.outputDir }}{{ folderNamePreview }}
           </div>
         </div>
-      </div>
+      </div> -->
 
       <button
         class="waves-light btn-large"
@@ -91,7 +91,9 @@
         Import
       </button>
     </div>
-    <transition name="fade">
+    <!-- <Resolve v-if="inResolveMode" :unknownGameIds="unknownGameIds" /> -->
+    <!-- <button v-if="inResolveMode" @click="inResolveMode = false">Cancel</button> -->
+    <!-- <transition name="fade">
       <Progress v-if="inProgress">
         <p>Importing file {{ doneFiles }} of {{ totalFiles }}</p>
         <p v-if="skippedFiles">Skipped {{ skippedFiles }}</p>
@@ -102,33 +104,37 @@
           </button>
         </p>
       </Progress>
-    </transition>
+    </transition> -->
   </div>
 </template>
 
 <script>
 const fs = require("fs");
 
-import Progress from "./components/Progress.vue";
+// import Progress from "./components/Progress.vue";
 import SdCardDir from "./components/SdCardDir.vue";
 import OutputDir from "./components/OutputDir.vue";
+// import Resolve from "./components/Resolve.vue";
 import { ipcRenderer } from "electron";
 import { mapState, mapMutations } from "vuex";
 
 export default {
   name: "App",
   components: {
-    Progress,
+    // Progress,
     SdCardDir,
     OutputDir
+    // Resolve
   },
   data() {
     return {
-      inProgress: false,
+      inResolveMode: false,
+      // inProgress: false,
       totalFiles: 0,
       doneFiles: 0,
       skippedFiles: 0,
 
+      unknownGameIds: [],
       copyInstructions: [],
       error: null,
       errors: {
@@ -244,39 +250,39 @@ export default {
 
       this.totalFiles = filteredFiles.length;
       this.backupFiles(filteredFiles);
+      if (this.unknownGameIds.length) {
+        this.inResolveMode = true;
+      }
+
       ipcRenderer.send("copy-files", this.copyInstructions);
+      ipcRenderer.once("files-copied", () => {
+        if (this.unknownGameIds.length) {
+          console.log("some files were unknown");
+        }
+      });
     },
     backupFiles(filelist) {
       // let outputDir;
       filelist.forEach(screenshotFullPath => {
-        if (this.inProgress) {
-          const filename = screenshotFullPath.substring(
-            screenshotFullPath.lastIndexOf("/") + 1
-          );
+        const filename = screenshotFullPath.substring(
+          screenshotFullPath.lastIndexOf("/") + 1
+        );
 
-          const gameName = this.getGameTitle(filename);
-          if (!gameName) {
-            // TODO: Do this later
-            console.log(`Game mapping not found for ${filename}.`);
-            const gameId = this.getGameIdFromFileName(filename);
-            ipcRenderer.send("addGameId", gameId, "");
-          } else {
-            console.log(`Backing up screenshot for ${gameName}`);
-            this.backupFile(screenshotFullPath, gameName);
+        const gameName = this.getGameTitle(filename);
+        if (!gameName) {
+          console.log(`Game mapping not found for ${filename}.`);
+          const gameId = this.getGameIdFromFileName(filename);
+          ipcRenderer.send("addGameId", gameId, "");
+          if (!this.unknownGameIds.find(gameObj => gameObj.gameId === gameId)) {
+            this.unknownGameIds.push({ gameId, screenshotFullPath });
           }
+          this.backupFile(screenshotFullPath, "Unknown");
+        } else {
+          console.log(`Backing up screenshot for ${gameName}`);
+          this.backupFile(screenshotFullPath, gameName);
         }
 
         this.doneFiles++;
-
-        // WORKFLOW:
-        // check if the game name exists
-        // else, show a prompt, write the id and title to it
-
-        // DONE check if the game name folder exists
-        // DONE else, create it
-
-        // check number of items in the folder for starting index
-        // generate the final file name
       });
     },
     backupFile(filePath, gameName) {
@@ -373,7 +379,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 20px;
+  margin: 20px 0;
 }
 
 .fade-enter-active,
@@ -384,5 +390,9 @@ body {
 .fade-enter,
 .fade-leave-to {
   opacity: 0;
+}
+
+.card-panel {
+  padding: 5px 10px;
 }
 </style>

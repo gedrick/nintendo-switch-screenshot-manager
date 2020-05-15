@@ -51,7 +51,9 @@ function createMainWindow() {
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true
-    }
+    },
+    resizable: false
+    // frame: false
   });
 
   Menu.buildFromTemplate(mainMenuTemplate);
@@ -66,7 +68,8 @@ function createMainWindow() {
     mainWindow.loadURL("app://./index.html");
   }
 
-  const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+  // const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+  const mainMenu = Menu.buildFromTemplate([]);
   Menu.setApplicationMenu(mainMenu);
 
   mainWindow.on("closed", () => {
@@ -163,6 +166,7 @@ ipcMain.on("copy-files", async (event, copyInstructions) => {
       console.log(`Error copying file ${file}`, e);
     }
   });
+  event.sender.send("files-copied");
 });
 
 ipcMain.on("addGameId", (event, gameId, gameName) => {

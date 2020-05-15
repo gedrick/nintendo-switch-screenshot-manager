@@ -13,7 +13,9 @@
       <b v-if="!settings.outputDir" class="left">
         Select the directory to save your screenshots
       </b>
-      <p v-else class="left"><b>Output Folder:</b> {{ settings.outputDir }}</p>
+      <p v-else class="left">
+        <b>Screenshot Folder:</b> {{ settings.outputDir }}
+      </p>
     </div>
     <div class="col s2">
       <button
