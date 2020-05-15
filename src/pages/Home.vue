@@ -20,6 +20,9 @@
     <div class="manage" v-if="section === 'manage'">
       <Manage />
     </div>
+    <div class="resolve" v-if="section === 'resolve'">
+      <Resolve />
+    </div>
   </div>
 </template>
 

@@ -14,6 +14,7 @@
           </div>
         </div>
       </div> -->
+
       <div class="buttons">
         <button
           class="waves-light btn-large"
@@ -52,6 +53,7 @@
 
 <script>
 const fs = require("fs");
+const Electron = window.require("electron").remote;
 
 // import Progress from "./components/Progress.vue";
 import SdCardDir from "../components/SdCardDir.vue";
@@ -129,10 +131,8 @@ export default {
     },
 
     importGameIds() {
-      // TODO: STILL NEED TO FIGURE OUT THIS SHIT
-      // PROCESS.ENV IS ONLY VALID WHEN I CONSOLE LOG IT!?
       const gameIds = fs.readFileSync(
-        `/home/chris/.nssm/game_ids.json`,
+        `${Electron.app.getPath("home")}/.nssm/game_ids.json`,
         "utf8"
       );
       this.setGameIds(JSON.parse(gameIds));
