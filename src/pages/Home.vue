@@ -10,18 +10,12 @@
       <button class="waves-light btn-large" @click="section = 'manage'">
         Manage Screenshots
       </button>
-      <button class="waves-light btn-large" @click="section = 'resolve'">
-        Resolve Unknowns
-      </button>
     </div>
     <div class="import" v-if="section === 'import'">
       <Import />
     </div>
     <div class="manage" v-if="section === 'manage'">
       <Manage />
-    </div>
-    <div class="resolve" v-if="section === 'resolve'">
-      <Resolve />
     </div>
   </div>
 </template>
@@ -49,7 +43,6 @@ body {
   background-color: #e3f2fd;
   font-family: BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu,
     Cantarell, "Helvetica Neue", sans-serif;
-  overflow: hidden;
 }
 
 #home {

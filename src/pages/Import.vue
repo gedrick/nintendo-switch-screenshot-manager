@@ -1,6 +1,6 @@
 <template>
   <div id="import">
-    <div class="container">
+    <div v-if="!inResolveMode" class="container">
       <SdCardDir />
       <OutputDir />
       <FileName />
@@ -34,7 +34,7 @@
         </button>
       </div>
     </div>
-    <!-- <Resolve v-if="inResolveMode" :unknownGameIds="unknownGameIds" /> -->
+    <Resolve v-if="inResolveMode" />
     <!-- <button v-if="inResolveMode" @click="inResolveMode = false">Cancel</button> -->
     <!-- <transition name="fade">
       <Progress v-if="inProgress">
@@ -60,7 +60,7 @@ import SdCardDir from "../components/SdCardDir.vue";
 import OutputDir from "../components/OutputDir.vue";
 import FileName from "../components/FileName.vue";
 import TypeSettings from "../components/TypeSettings.vue";
-// import Resolve from "./components/Resolve.vue";
+import Resolve from "../components/Resolve.vue";
 import { ipcRenderer } from "electron";
 import { mapState, mapMutations } from "vuex";
 
@@ -71,8 +71,8 @@ export default {
     SdCardDir,
     OutputDir,
     FileName,
-    TypeSettings
-    // Resolve
+    TypeSettings,
+    Resolve
   },
   data() {
     return {
@@ -82,7 +82,6 @@ export default {
       doneFiles: 0,
       skippedFiles: 0,
 
-      unknownGameIds: [],
       copyInstructions: [],
       error: null,
       errors: {
@@ -103,7 +102,7 @@ export default {
     ipcRenderer.removeAllListeners("setOutputDir");
   },
   computed: {
-    ...mapState(["settings", "gameIds"]),
+    ...mapState(["settings", "gameIds", "unknownGameIds"]),
     readyToImport() {
       return (
         this.settings.outputDir &&
@@ -121,7 +120,10 @@ export default {
       "setSettings",
       "updateSetting",
       "setGameIds",
-      "addGameId"
+      "addGameId",
+      "addUnknownGameId",
+      "removeUnknownGameId",
+      "clearUnknownGameIds"
     ]),
     cancelImport() {
       this.inProgress = false;
@@ -138,6 +140,7 @@ export default {
       this.setGameIds(JSON.parse(gameIds));
     },
     beginImport(dryRun = true) {
+      this.clearUnknownGameIds();
       this.importGameIds();
       this.inProgress = true;
 
@@ -160,9 +163,11 @@ export default {
 
       if (this.unknownGameIds.length) {
         this.inResolveMode = true;
+        // Short circuit the import until we have all the IDs resolved.
+        return;
       }
 
-      if (dryRun) {
+      if (!dryRun) {
         ipcRenderer.send("copy-files", this.copyInstructions);
         ipcRenderer.once("files-copied", () => {
           if (this.unknownGameIds.length) {
@@ -196,9 +201,7 @@ export default {
           console.log(`Game mapping not found for ${filename}.`);
           const gameId = this.getGameIdFromFileName(filename);
           ipcRenderer.send("addGameId", gameId, "");
-          if (!this.unknownGameIds.find(gameObj => gameObj.gameId === gameId)) {
-            this.unknownGameIds.push({ gameId, screenshotFullPath });
-          }
+          this.addUnknownGameId({ gameId, screenshotPath: screenshotFullPath });
         } else {
           console.log(`Backing up screenshot for ${gameName}`);
           this.backupFile(screenshotFullPath, gameName);

@@ -15,7 +15,8 @@ export default new Vuex.Store({
         videos: false
       }
     },
-    gameIds: {}
+    gameIds: {},
+    unknownGameIds: []
   },
   mutations: {
     setSettings(state, newSettings) {
@@ -25,7 +26,23 @@ export default new Vuex.Store({
         ...newSettings
       });
     },
-
+    addUnknownGameId(state, { gameId, screenshotPath }) {
+      const unknownGameIds = state.unknownGameIds;
+      unknownGameIds.push({
+        gameId,
+        screenshotPath
+      });
+      Vue.set(state, "unknownGameIds", unknownGameIds);
+    },
+    removeUnknownGameId(state, gameId) {
+      const unknownGameIds = state.unknownGameIds.filter(
+        record => record.gameId !== gameId
+      );
+      Vue.set(state, "unknownGameIds", unknownGameIds);
+    },
+    clearUnknownGameIds(state) {
+      Vue.set(state, "unknownGameIds", []);
+    },
     updateSetting(state, { setting, value }) {
       Vue.set(state.settings, setting, value);
     },

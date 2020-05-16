@@ -50,7 +50,8 @@ function createMainWindow() {
     height: 600,
     webPreferences: {
       nodeIntegration: true,
-      enableRemoteModule: true
+      enableRemoteModule: true,
+      webSecurity: false
     },
     resizable: false
   });
