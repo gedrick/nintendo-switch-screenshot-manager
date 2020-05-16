@@ -19,14 +19,6 @@
         <button
           class="waves-light btn-large"
           id="output-dir-btn"
-          @click="beginImport"
-          :disabled="!readyToImport"
-        >
-          Preview
-        </button>
-        <button
-          class="waves-light btn-large"
-          id="output-dir-btn"
           @click="beginImport(false)"
           :disabled="!readyToImport"
         >
@@ -163,15 +155,13 @@ export default {
 
       if (this.unknownGameIds.length) {
         this.inResolveMode = true;
-        // Short circuit the import until we have all the IDs resolved.
-        return;
       }
 
       if (!dryRun) {
         ipcRenderer.send("copy-files", this.copyInstructions);
         ipcRenderer.once("files-copied", () => {
           if (this.unknownGameIds.length) {
-            console.log("some files were unknown");
+            // window.alert('Some ')
           }
         });
       }

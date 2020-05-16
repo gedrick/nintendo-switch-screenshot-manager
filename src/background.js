@@ -119,7 +119,7 @@ function addGameId(gameId, gameName) {
   if (fs.existsSync(filePath)) {
     fileContents = fs.readFileSync(filePath, "utf8");
     const gameMap = JSON.parse(fileContents);
-    if (!Object.keys(gameMap).includes(gameId)) {
+    if (!Object.keys(gameMap).includes(gameId) || !gameMap[gameId]) {
       gameMap[gameId] = gameName;
       fs.writeFileSync(filePath, JSON.stringify(gameMap, null, 2), "utf8");
     }
@@ -170,6 +170,8 @@ ipcMain.on("copy-files", async (event, copyInstructions) => {
 });
 
 ipcMain.on("addGameId", (event, gameId, gameName) => {
+  console.log("ipcMain addgameId hit", gameId, gameName);
+
   addGameId(gameId, gameName);
 });
 

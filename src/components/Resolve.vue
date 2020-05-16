@@ -1,44 +1,93 @@
 <template>
   <div class="container">
     <p>
-      The following game IDs were not found! Please enter the name of the game
-      next to each screenshot. You will only have to do this once for each game.
+      <b>
+        Some screenshots could not be imported because they don't have a
+        matching ID! Sometimes this happens if the database is not up to date.
+      </b>
+    </p>
+    <p>
+      Please enter the name of the game next to each screenshot. You will only
+      have to do this once for each game. Once you've saved a new game title,
+      you will have to Import again to see the screenshots copied over.
     </p>
     <div
       class="card-panel valign-wrapper row"
-      v-for="game in unknownGameIds"
+      v-for="game in uniqueGameIds"
       :key="game.gameId"
     >
       <div class="col s8 input-field">
-        <input type="text" />
+        <input type="text" v-model="newTitle[game.gameId]" />
         <label for="folderName">Game Title</label>
         <div class="buttons">
-          <button>Save Game Name</button>
-          <!-- <button>Delete Screenshot</button> -->
+          <button @click="addGameId(game.gameId)">Save Game Name</button>
+          <button @click="confirmDelete(game.gameId)">Delete Screenshot</button>
+          <button
+            class="confirm-delete"
+            @click="deleteScreenshot(game.gameId, game.screenshotPath)"
+            :ref="`confirm-${game.gameId}`"
+          >
+            Confirm?
+          </button>
         </div>
       </div>
       <div class="col s4">
-        <!-- make an image block that you can click to shuffle through
-        matching images to match the game better -->
-        <img class="screenshot" :src="`file://${game.screenshotPath}`" />
+        <img
+          @click="toggleFullScreen(game.gameId)"
+          :ref="`screenshot-${game.gameId}`"
+          class="screenshot"
+          :src="`file://${game.screenshotPath}`"
+        />
       </div>
     </div>
   </div>
 </template>
 
 <script>
-// const fsp = fs.promises;
+const fs = require("fs");
 import { mapState, mapMutations } from "vuex";
+import { ipcRenderer } from "electron";
+
 export default {
   name: "Resolve",
+  data() {
+    return {
+      newTitle: {},
+      fullScreen: false
+    };
+  },
   computed: {
     ...mapState(["unknownGameIds"]),
     uniqueGameIds() {
-      return new Map();
+      const foundUniques = [];
+      this.unknownGameIds.forEach(gameObj => {
+        if (
+          !foundUniques.find(
+            foundUnique => foundUnique.gameId === gameObj.gameId
+          )
+        ) {
+          foundUniques.push(gameObj);
+        }
+      });
+      return foundUniques;
     }
   },
   methods: {
-    ...mapMutations(["addGameId", "removeUnknownGameId"])
+    ...mapMutations(["addGameId", "removeUnknownGameId"]),
+    addGameId(gameId) {
+      ipcRenderer.send("addGameId", gameId, this.newTitle[gameId]);
+      this.removeUnknownGameId(gameId);
+    },
+    toggleFullScreen(gameId) {
+      this.$refs[`screenshot-${gameId}`][0].classList.toggle("fullscreen");
+    },
+    confirmDelete(gameId) {
+      this.$refs[`confirm-${gameId}`][0].classList.add("visible");
+    },
+    deleteScreenshot(gameId, screenshotPath) {
+      this.removeUnknownGameId(gameId);
+      fs.unlinkSync(screenshotPath);
+    }
   }
 };
 </script>
@@ -47,6 +96,23 @@ export default {
 .screenshot {
   max-height: 100%;
   height: 100px;
+  cursor: pointer;
+  z-index: 5;
+
+  &.fullscreen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+  }
+}
+
+.confirm-delete {
+  display: none;
+  &.visible {
+    display: block;
+  }
 }
 
 .card-panel {
@@ -54,6 +120,7 @@ export default {
     display: flex;
     flex-direction: column;
   }
+
   .buttons {
     display: flex;
     justify-content: flex-start;
