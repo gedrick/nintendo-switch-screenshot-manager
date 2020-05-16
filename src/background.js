@@ -170,8 +170,6 @@ ipcMain.on("copy-files", async (event, copyInstructions) => {
 });
 
 ipcMain.on("addGameId", (event, gameId, gameName) => {
-  console.log("ipcMain addgameId hit", gameId, gameName);
-
   addGameId(gameId, gameName);
 });
 
