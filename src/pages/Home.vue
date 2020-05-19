@@ -5,25 +5,39 @@
         <div class="pane-sm sidebar">
           <nav class="nav-group">
             <h5 class="nav-group-title">Import</h5>
-            <a class="nav-group-item active">
+            <a
+              class="nav-group-item active"
+              @click="setActivePage('file-folder-locations')"
+            >
               <span class="icon icon-home"></span>
               File/Folder Locations
             </a>
-            <span class="nav-group-item">
+            <a class="nav-group-item">
               <span class="icon icon-download"></span>
               File Naming
-            </span>
-            <span class="nav-group-item">
+            </a>
+            <a class="nav-group-item">
               <span class="icon icon-folder"></span>
               Documents
-            </span>
+            </a>
+            <h5 class="nav-group-title">Manage</h5>
+            <a class="nav-group-item">
+              <span class="icon icon-folder"></span>
+              View All
+            </a>
+            <a class="nav-group-item">
+              <span class="icon icon-folder"></span>
+              Screenshots
+            </a>
+            <a class="nav-group-item">
+              <span class="icon icon-folder"></span>
+              Videos
+            </a>
+            <a class="nav-group-item">
+              <span class="icon icon-folder"></span>
+              Recent
+            </a>
           </nav>
-          <!-- <button class="waves-light btn-large" @click="section = 'import'">
-            Import Screenshots
-          </button>
-          <button class="waves-light btn-large" @click="section = 'manage'">
-            Manage Screenshots
-          </button> -->
         </div>
         <div class="pane">
           <Import v-if="section === 'import'" />
@@ -42,13 +56,13 @@ export default {
   name: "Home",
   components: {
     Import,
-    Manage
+    Manage,
   },
   data() {
     return {
-      section: "import"
+      section: "import",
     };
-  }
+  },
 };
 </script>
 
