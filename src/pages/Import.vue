@@ -1,19 +1,10 @@
 <template>
   <div id="import">
-    <div v-if="!inResolveMode" class="container">
+    <div v-if="!inResolveMode">
       <SdCardDir />
       <OutputDir />
       <FileName />
       <TypeSettings />
-
-      <!-- <div class="row">
-        <div class="col s12">
-          <div class="row center">
-            <b>Preview:</b><br />
-            {{ settings.outputDir }}{{ folderNamePreview }}
-          </div>
-        </div>
-      </div> -->
 
       <div class="buttons">
         <button
@@ -27,19 +18,6 @@
       </div>
     </div>
     <Resolve v-if="inResolveMode" />
-    <!-- <button v-if="inResolveMode" @click="inResolveMode = false">Cancel</button> -->
-    <!-- <transition name="fade">
-      <Progress v-if="inProgress">
-        <p>Importing file {{ doneFiles }} of {{ totalFiles }}</p>
-        <p v-if="skippedFiles">Skipped {{ skippedFiles }}</p>
-        <br />
-        <p>
-          <button class="waves-effect waves-light btn" @click="cancelImport">
-            Cancel
-          </button>
-        </p>
-      </Progress>
-    </transition> -->
   </div>
 </template>
 
