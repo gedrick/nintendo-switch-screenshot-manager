@@ -1,43 +1,48 @@
 <template>
-  <div
-    class="card-panel lighten-4"
-    :class="{ red: !settings.folderName, green: settings.folderName }"
-  >
-    <div class="row valign-wrapper input-block">
-      <div class="input-field col s10">
+  <div>
+    <fieldset>
+      <legend>Output Folder and File Name</legend>
+      <div
+        class="card-panel"
+        :class="{ red: !settings.folderName, green: settings.folderName }"
+      >
         <input
           ref="folderName"
           id="folderName"
           v-model="settings.folderName"
           type="text"
         />
-        <label for="folderName">Output Folder and File Name</label>
+        <div class="col s2">
+          <button
+            @click="updateFolderName('folderName')"
+            class="btn btn-default btn-mini"
+            id="output-dir-btn"
+          >
+            <span>Save</span>
+          </button>
+        </div>
       </div>
-      <div class="col s2">
-        <button
-          @click="updateFolderName('folderName')"
-          class="waves-effect waves-light btn"
-          id="output-dir-btn"
-        >
-          <span>Save</span>
-        </button>
+      <div class="row center">
+        <b>Preview:</b><br />
+        {{ folderNamePreview }}
       </div>
-    </div>
-    <div class="row center">
-      {{ folderNamePreview }}
-    </div>
-    <div class="row center">
-      <div class="col s6">
-        <b>Date variables:</b><br />
-        %year%&nbsp;&nbsp;%month%<br />
-        %day%&nbsp;&nbsp;%time%
+    </fieldset>
+
+    <fieldset>
+      <legend>Variables</legend>
+      <div class="card-panel">
+        <div>
+          <b>Date variables:</b><br />
+          %year%&nbsp;&nbsp;%month%<br />
+          %day%&nbsp;&nbsp;%time%
+        </div>
+        <div>
+          <b>Other variables:</b><br />
+          %titlefull% %titleshort%<br />
+          %type% %number%
+        </div>
       </div>
-      <div class="col s6">
-        <b>Other variables:</b><br />
-        %titlefull% %titleshort%<br />
-        %type% %number%
-      </div>
-    </div>
+    </fieldset>
   </div>
 </template>
 

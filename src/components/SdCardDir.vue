@@ -15,7 +15,7 @@
     <div class="col s2">
       <button
         @click="selectSdCardDir"
-        class="waves-effect waves-light btn"
+        class="btn btn-mini btn-default"
         id="sd-dir-btn"
       >
         <span v-if="!settings.sdCardDir">Select</span>

@@ -1,23 +1,26 @@
 <template>
   <div id="import">
-    <div v-if="!inResolveMode">
+    <div v-if="subsection === 'file-folder-locations'">
       <SdCardDir />
       <OutputDir />
-      <FileName />
       <TypeSettings />
-
-      <div class="buttons">
-        <button
-          class="waves-light btn-large"
-          id="output-dir-btn"
-          @click="beginImport(false)"
-          :disabled="!readyToImport"
-        >
-          Import
-        </button>
-      </div>
     </div>
-    <Resolve v-if="inResolveMode" />
+    <div v-if="subsection === 'filename'">
+      <FileName />
+    </div>
+
+    <Resolve v-if="subsection === 'resolve'" />
+
+    <div class="actions">
+      <button
+        class="btn btn-large btn-primary"
+        id="output-dir-btn"
+        @click="beginImport(false)"
+        :disabled="!readyToImport"
+      >
+        Import Screenshots
+      </button>
+    </div>
   </div>
 </template>
 
@@ -36,6 +39,12 @@ import { mapState, mapMutations } from "vuex";
 
 export default {
   name: "App",
+  props: {
+    subsection: {
+      type: String,
+      default: "file-folder-locations"
+    }
+  },
   components: {
     // Progress,
     SdCardDir,
@@ -260,11 +269,19 @@ export default {
 </script>
 
 <style lang="scss">
+#import {
+  height: 100%;
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .card-panel {
   padding: 5px 15px;
 }
 
-.buttons {
+.actions {
   display: flex;
   justify-content: space-evenly;
 }

@@ -14,7 +14,7 @@
     <div class="col s2">
       <button
         @click="selectOutputDir"
-        class="waves-effect waves-light btn"
+        class="btn btn-mini btn-default"
         id="output-dir-btn"
       >
         <span v-if="!settings.outputDir">Select</span>

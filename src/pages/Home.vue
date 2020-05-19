@@ -6,42 +6,67 @@
           <nav class="nav-group">
             <h5 class="nav-group-title">Import</h5>
             <a
-              class="nav-group-item active"
-              @click="setActivePage('file-folder-locations')"
+              class="nav-group-item"
+              :class="{ active: subsection === 'file-folder-locations' }"
+              @click="setActivePage('import', 'file-folder-locations')"
             >
               <span class="icon icon-home"></span>
               File/Folder Locations
             </a>
-            <a class="nav-group-item">
+            <a
+              class="nav-group-item"
+              :class="{ active: subsection === 'filename' }"
+              @click="setActivePage('import', 'filename')"
+            >
               <span class="icon icon-download"></span>
               File Naming
             </a>
-            <a class="nav-group-item">
+            <a
+              class="nav-group-item"
+              :class="{ active: subsection === 'resolve' }"
+              @click="setActivePage('import', 'resolve')"
+            >
               <span class="icon icon-folder"></span>
-              Documents
+              Resolve
             </a>
-            <h5 class="nav-group-title">Manage</h5>
-            <a class="nav-group-item">
+            <h5 class="nav-group-title">Screenshots</h5>
+            <a
+              class="nav-group-item"
+              :class="{ active: subsection === 'view-all' }"
+              @click="setActivePage('manage', 'view-all')"
+            >
               <span class="icon icon-folder"></span>
               View All
             </a>
-            <a class="nav-group-item">
+            <a
+              class="nav-group-item"
+              :class="{ active: subsection === 'screenshots' }"
+              @click="setActivePage('manage', 'screenshots')"
+            >
               <span class="icon icon-folder"></span>
               Screenshots
             </a>
-            <a class="nav-group-item">
+            <a
+              class="nav-group-item"
+              :class="{ active: subsection === 'videos' }"
+              @click="setActivePage('manage', 'videos')"
+            >
               <span class="icon icon-folder"></span>
               Videos
             </a>
-            <a class="nav-group-item">
+            <a
+              class="nav-group-item"
+              :class="{ active: subsection === 'recent' }"
+              @click="setActivePage('manage', 'recent')"
+            >
               <span class="icon icon-folder"></span>
               Recent
             </a>
           </nav>
         </div>
         <div class="pane">
-          <Import v-if="section === 'import'" />
-          <Manage v-if="section === 'manage'" />
+          <Import v-if="section === 'import'" :subsection="subsection" />
+          <Manage v-if="section === 'manage'" :subsection="subsection" />
         </div>
       </div>
     </div>
@@ -56,13 +81,20 @@ export default {
   name: "Home",
   components: {
     Import,
-    Manage,
+    Manage
   },
   data() {
     return {
       section: "import",
+      subsection: "file-folder-locations"
     };
   },
+  methods: {
+    setActivePage(section, subsection) {
+      this.sections = section;
+      this.subsection = subsection;
+    }
+  }
 };
 </script>
 
@@ -105,6 +137,31 @@ body {
 //     margin-bottom: 20px;
 //   }
 // }
+
+.card-panel {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+  border-radius: 5px;
+
+  &.red {
+    background-color: rgba(red, 0.3);
+  }
+
+  &.green {
+    background-color: rgba(green, 0.3);
+  }
+}
+
+.btn-primary {
+  // font-size: 20px;
+}
+
+.btn-default {
+  // font-size: 15px;
+}
 
 .fade-enter-active,
 .fade-leave-active {

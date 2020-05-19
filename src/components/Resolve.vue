@@ -1,16 +1,24 @@
 <template>
   <div class="container">
-    <p>
-      <b>
-        Some screenshots could not be imported because they don't have a
-        matching ID! Sometimes this happens if the database is not up to date.
-      </b>
-    </p>
-    <p>
-      Please enter the name of the game next to each screenshot. You will only
-      have to do this once for each game. Once you've saved a new game title,
-      you will have to Import again to see the screenshots copied over.
-    </p>
+    <div v-if="!unknownGameIds.length">
+      <p>
+        Looks like everything is all good - you don't have any game IDs to
+        resolve.
+      </p>
+    </div>
+    <div v-else>
+      <p>
+        <b>
+          Some screenshots could not be imported because they don't have a
+          matching ID! Sometimes this happens if the database is not up to date.
+        </b>
+      </p>
+      <p>
+        Please enter the name of the game next to each screenshot. You will only
+        have to do this once for each game. Once you've saved a new game title,
+        you will have to Import again to see the screenshots copied over.
+      </p>
+    </div>
     <div
       class="card-panel valign-wrapper row"
       v-for="game in uniqueGameIds"
