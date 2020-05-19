@@ -1,5 +1,5 @@
 <template>
-  <div id="import">
+  <div class="section" id="import">
     <div v-if="subsection === 'file-folder-locations'">
       <SdCardDir />
       <OutputDir />
@@ -149,6 +149,7 @@ export default {
       if (!dryRun) {
         ipcRenderer.send("copy-files", this.copyInstructions);
         ipcRenderer.once("files-copied", () => {
+          this.copyInstructions = [];
           if (this.unknownGameIds.length) {
             // window.alert('Some ')
           }
@@ -271,7 +272,7 @@ export default {
 </script>
 
 <style lang="scss">
-#import {
+.section {
   height: 100%;
   padding: 25px;
   display: flex;

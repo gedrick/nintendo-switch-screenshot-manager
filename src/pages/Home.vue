@@ -10,7 +10,7 @@
               :class="{ active: subsection === 'file-folder-locations' }"
               @click="setActivePage('import', 'file-folder-locations')"
             >
-              <span class="icon icon-home"></span>
+              <span class="icon icon-folder"></span>
               File/Folder Locations
             </a>
             <a
@@ -18,7 +18,7 @@
               :class="{ active: subsection === 'filename' }"
               @click="setActivePage('import', 'filename')"
             >
-              <span class="icon icon-download"></span>
+              <span class="icon icon-floppy"></span>
               File Naming
             </a>
             <a
@@ -26,7 +26,7 @@
               :class="{ active: subsection === 'resolve' }"
               @click="setActivePage('import', 'resolve')"
             >
-              <span class="icon icon-folder"></span>
+              <span class="icon icon-docs"></span>
               Resolve
             </a>
             <h5 class="nav-group-title">Screenshots</h5>
@@ -35,7 +35,7 @@
               :class="{ active: subsection === 'view-all' }"
               @click="setActivePage('manage', 'view-all')"
             >
-              <span class="icon icon-folder"></span>
+              <span class="icon icon-camera"></span>
               View All
             </a>
             <a
@@ -43,7 +43,7 @@
               :class="{ active: subsection === 'screenshots' }"
               @click="setActivePage('manage', 'screenshots')"
             >
-              <span class="icon icon-folder"></span>
+              <span class="icon icon-picture"></span>
               Screenshots
             </a>
             <a
@@ -51,7 +51,7 @@
               :class="{ active: subsection === 'videos' }"
               @click="setActivePage('manage', 'videos')"
             >
-              <span class="icon icon-folder"></span>
+              <span class="icon icon-video"></span>
               Videos
             </a>
             <a
@@ -59,7 +59,7 @@
               :class="{ active: subsection === 'recent' }"
               @click="setActivePage('manage', 'recent')"
             >
-              <span class="icon icon-folder"></span>
+              <span class="icon icon-calendar"></span>
               Recent
             </a>
           </nav>
@@ -143,6 +143,7 @@ body {
 // }
 
 .form-control,
+.btn,
 .btn * {
   cursor: pointer;
 }

@@ -1,5 +1,5 @@
 <template>
-  <div class="manage">
+  <div class="section" id="manage">
     Manage!
   </div>
 </template>

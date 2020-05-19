@@ -21,32 +21,26 @@
       </p>
     </div>
     <div
-      class="card-panel green"
+      class="card-panel game-block green"
       v-for="game in uniqueGameIds"
       :key="game.gameId"
     >
-      <div class="col s8 input-field">
+      <div class="game-block-actions input-field">
         <input
           type="text"
+          placeholder="Game Title"
           class="form-control"
           v-model="newTitle[game.gameId]"
         />
-        <label for="folderName">Game Title</label>
         <div class="buttons">
-          <button
-            class="btn btn-mini btn-positive"
-            @click="addGameId(game.gameId)"
-          >
+          <button class="btn btn-positive" @click="addGameId(game.gameId)">
             Save Name
           </button>
-          <button
-            class="btn btn-mini btn-warning"
-            @click="confirmDelete(game.gameId)"
-          >
+          <button class="btn btn-warning" @click="confirmDelete(game.gameId)">
             Delete
           </button>
           <button
-            class="confirm-delete btn btn-mini btn-negative"
+            class="confirm-delete btn btn-negative"
             @click="deleteScreenshot(game.gameId, game.screenshotPath)"
             :ref="`confirm-${game.gameId}`"
           >
@@ -116,6 +110,17 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+.game-block {
+  display: flex;
+  flex-direction: row;
+}
+
+.game-block-actions {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
 .screenshot {
   max-height: 100%;
   height: 100px;
@@ -135,18 +140,6 @@ export default {
   display: none;
   &.visible {
     display: block;
-  }
-}
-
-.card-panel {
-  .input-field {
-    display: flex;
-    flex-direction: column;
-  }
-
-  .buttons {
-    display: flex;
-    justify-content: flex-start;
   }
 }
 </style>
