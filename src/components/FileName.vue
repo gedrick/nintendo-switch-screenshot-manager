@@ -8,6 +8,7 @@
       >
         <input
           ref="folderName"
+          class="form-control"
           id="folderName"
           v-model="settings.folderName"
           type="text"

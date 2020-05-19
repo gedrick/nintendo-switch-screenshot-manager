@@ -65,7 +65,11 @@
           </nav>
         </div>
         <div class="pane">
-          <Import v-if="section === 'import'" :subsection="subsection" />
+          <Import
+            v-if="section === 'import'"
+            @changeSection="section => (subsection = section)"
+            :subsection="subsection"
+          />
           <Manage v-if="section === 'manage'" :subsection="subsection" />
         </div>
       </div>
@@ -91,7 +95,7 @@ export default {
   },
   methods: {
     setActivePage(section, subsection) {
-      this.sections = section;
+      this.section = section;
       this.subsection = subsection;
     }
   }
@@ -137,6 +141,20 @@ body {
 //     margin-bottom: 20px;
 //   }
 // }
+
+.form-control,
+.btn * {
+  cursor: pointer;
+}
+
+.btn-action {
+  .label {
+    padding: 10px;
+  }
+  .icon::before {
+    color: #fff;
+  }
+}
 
 .card-panel {
   display: flex;

@@ -14,24 +14,39 @@
         </b>
       </p>
       <p>
-        Please enter the name of the game next to each screenshot. You will only
-        have to do this once for each game. Once you've saved a new game title,
-        you will have to Import again to see the screenshots copied over.
+        Enter the name of the game next to each screenshot. You will only have
+        to do this once for each game. Once you've saved a new game title, you
+        will have to Import again to see the screenshots copied over. You can
+        click the screenshot to view it in full screen.
       </p>
     </div>
     <div
-      class="card-panel valign-wrapper row"
+      class="card-panel green"
       v-for="game in uniqueGameIds"
       :key="game.gameId"
     >
       <div class="col s8 input-field">
-        <input type="text" v-model="newTitle[game.gameId]" />
+        <input
+          type="text"
+          class="form-control"
+          v-model="newTitle[game.gameId]"
+        />
         <label for="folderName">Game Title</label>
         <div class="buttons">
-          <button @click="addGameId(game.gameId)">Save Game Name</button>
-          <button @click="confirmDelete(game.gameId)">Delete Screenshot</button>
           <button
-            class="confirm-delete"
+            class="btn btn-mini btn-positive"
+            @click="addGameId(game.gameId)"
+          >
+            Save Name
+          </button>
+          <button
+            class="btn btn-mini btn-warning"
+            @click="confirmDelete(game.gameId)"
+          >
+            Delete
+          </button>
+          <button
+            class="confirm-delete btn btn-mini btn-negative"
             @click="deleteScreenshot(game.gameId, game.screenshotPath)"
             :ref="`confirm-${game.gameId}`"
           >

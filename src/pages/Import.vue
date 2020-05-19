@@ -13,12 +13,13 @@
 
     <div class="actions">
       <button
-        class="btn btn-large btn-primary"
+        class="btn btn-large btn-primary btn-action"
         id="output-dir-btn"
         @click="beginImport(false)"
         :disabled="!readyToImport"
       >
-        Import Screenshots
+        <span class="icon icon-camera"></span>
+        <span class="label">Import Screenshots</span>
       </button>
     </div>
   </div>
@@ -141,6 +142,7 @@ export default {
       this.processDirectories(allDirectories);
 
       if (this.unknownGameIds.length) {
+        this.$emit("changeSection", "resolve");
         this.inResolveMode = true;
       }
 
