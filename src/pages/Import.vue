@@ -11,6 +11,10 @@
 
     <Resolve v-if="subsection === 'resolve'" />
 
+    <Progress>
+      Copied {{ copyProgress }} files out of {{ copyInstructions.length }}
+    </Progress>
+
     <div class="actions">
       <button
         class="btn btn-large btn-primary btn-action"
@@ -29,7 +33,7 @@
 const fs = require("fs");
 const Electron = window.require("electron").remote;
 
-// import Progress from "./components/Progress.vue";
+import Progress from "./components/Progress.vue";
 import SdCardDir from "../components/SdCardDir.vue";
 import OutputDir from "../components/OutputDir.vue";
 import FileName from "../components/FileName.vue";
@@ -47,7 +51,7 @@ export default {
     },
   },
   components: {
-    // Progress,
+    Progress,
     SdCardDir,
     OutputDir,
     FileName,
@@ -127,29 +131,37 @@ export default {
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
       let allDirectories = [];
       const yearFolders = fs.readdirSync(sdCardDir);
-      yearFolders.forEach((year) => {
-        const yearFolder = `${sdCardDir}/${year}`;
-        const monthFolders = fs.readdirSync(yearFolder);
-        monthFolders.forEach((month) => {
-          const monthFolder = `${sdCardDir}/${year}/${month}`;
-          const dayFolders = fs.readdirSync(monthFolder);
-          dayFolders.forEach((day) => {
-            allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
-          });
+      yearFolders
+        .filter((name) => !name.startsWith("."))
+        .forEach((year) => {
+          const yearFolder = `${sdCardDir}/${year}`;
+          const monthFolders = fs.readdirSync(yearFolder);
+          monthFolders
+            .filter((name) => !name.startsWith("."))
+            .forEach((month) => {
+              const monthFolder = `${sdCardDir}/${year}/${month}`;
+              const dayFolders = fs.readdirSync(monthFolder);
+              dayFolders
+                .filter((name) => !name.startsWith("."))
+                .forEach((day) => {
+                  allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
+                });
+            });
         });
-      });
 
       this.processDirectories(allDirectories);
 
       if (!dryRun) {
         const copiesToMake = this.copyInstructions.length;
+        this.inProgress = true;
         ipcRenderer.send("copy-files", this.copyInstructions);
         ipcRenderer.on(
           "copy-progress",
           (event, file, destination, progress) => {
-            console.log(
-              `${copiesToMake}/${progress}: ${file} -> ${destination}`
-            );
+            this.copyProgress = progress;
+            // console.log(
+            //   `${copiesToMake}/${progress}: ${file} -> ${destination}`
+            // );
           }
         );
         ipcRenderer.once("files-copied", () => {
@@ -188,12 +200,12 @@ export default {
 
         const gameName = this.getGameTitle(filename);
         if (!gameName) {
-          console.log(`Game mapping not found for ${filename}.`);
+          // console.log(`Game mapping not found for ${filename}.`);
           const gameId = this.getGameIdFromFileName(filename);
           ipcRenderer.send("addGameId", gameId, "");
           this.addUnknownGameId({ gameId, screenshotPath: screenshotFullPath });
         } else {
-          console.log(`Backing up screenshot for ${gameName}`);
+          // console.log(`Backing up screenshot for ${gameName}`);
           this.backupFile(screenshotFullPath, gameName);
         }
 
