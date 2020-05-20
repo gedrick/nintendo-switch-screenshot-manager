@@ -157,12 +157,23 @@ async function importGameIds() {
     }
   }
 }
-const { COPYFILE_EXCL } = fs.constants;
-ipcMain.on("copy-files", async (event, copyInstructions) => {
-  copyInstructions.forEach(async ({ file, destination }) => {
+// const { COPYFILE_EXCL } = fs.constants;
+ipcMain.on("copy-files", (event, copyInstructions) => {
+  copyInstructions.forEach(({ file, destination }) => {
+    const reader = fs.createReadStream(file);
+    const writer = fs.createWriteStream(destination);
+
+    let filesCopied = 0;
     try {
-      await fsp.copyFile(file, destination, COPYFILE_EXCL);
+      writer.on("finish", () => {
+        console.log("wrote a new file", file);
+        filesCopied++;
+      });
+      reader.pipe(writer);
+
+      // await fsp.copyFile(file, destination, COPYFILE_EXCL);
     } catch (e) {
+      event.sender.send("copy-progress", file, destination, filesCopied);
       console.log(`Error copying file ${file}`, e);
     }
   });

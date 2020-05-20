@@ -141,19 +141,29 @@ export default {
 
       this.processDirectories(allDirectories);
 
-      if (this.unknownGameIds.length) {
-        this.$emit("changeSection", "resolve");
-        this.inResolveMode = true;
-      }
-
       if (!dryRun) {
+        const copiesToMake = this.copyInstructions.length;
         ipcRenderer.send("copy-files", this.copyInstructions);
+        ipcRenderer.on(
+          "copy-progress",
+          (event, file, destination, progress) => {
+            console.log(
+              `${copiesToMake}/${progress}: ${file} -> ${destination}`
+            );
+          }
+        );
         ipcRenderer.once("files-copied", () => {
           this.copyInstructions = [];
           if (this.unknownGameIds.length) {
-            // window.alert('Some ')
+            this.$emit("changeSection", "resolve");
+            this.inResolveMode = true;
           }
         });
+      } else {
+        if (this.unknownGameIds.length) {
+          this.$emit("changeSection", "resolve");
+          this.inResolveMode = true;
+        }
       }
     },
     processDirectories(directoryArray) {
