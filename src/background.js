@@ -4,7 +4,7 @@ import fs from "fs";
 import { app, protocol, BrowserWindow, Menu, ipcMain, dialog } from "electron";
 import {
   createProtocol,
-  installVueDevtools,
+  installVueDevtools
 } from "vue-cli-plugin-electron-builder/lib";
 const fsp = fs.promises;
 const isDevelopment = process.env.NODE_ENV !== "production";
@@ -15,7 +15,7 @@ let mainWindow;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
-  { scheme: "app", privileges: { secure: true, standard: true } },
+  { scheme: "app", privileges: { secure: true, standard: true } }
 ]);
 
 const mainMenuTemplate = [
@@ -27,20 +27,20 @@ const mainMenuTemplate = [
         accelerator: process.platform === "darwin" ? "Cmd+O" : "Ctrl+O",
         click() {
           console.log("open output folder!");
-        },
+        }
       },
       {
-        type: "separator",
+        type: "separator"
       },
       {
         label: "Quit",
         accelerator: process.platform === "darwin" ? "Cmd+Q" : "Ctrl+Q",
         click() {
           app.quit();
-        },
-      },
-    ],
-  },
+        }
+      }
+    ]
+  }
 ];
 
 function createMainWindow() {
@@ -51,9 +51,9 @@ function createMainWindow() {
     webPreferences: {
       nodeIntegration: true,
       enableRemoteModule: true,
-      webSecurity: false,
+      webSecurity: false
     },
-    resizable: false,
+    resizable: true
   });
 
   Menu.buildFromTemplate(mainMenuTemplate);
@@ -130,8 +130,8 @@ async function importGameIds() {
   const res = await axios(paths.gameIdPath, {
     method: "get",
     headers: {
-      "Content-Type": "application/json",
-    },
+      "Content-Type": "application/json"
+    }
   });
   const { data } = res;
   const filePath = `${app.getPath("home")}/.nssm/game_ids.json`;
@@ -144,7 +144,7 @@ async function importGameIds() {
     console.log("trying to update game id map", filePath);
     const newJson = {
       ...newGameMap,
-      ...oldGameMap,
+      ...oldGameMap
     };
     await fsp.writeFile(filePath, JSON.stringify(newJson, null, 2), "utf8");
   } else {
@@ -160,14 +160,18 @@ async function importGameIds() {
 
 const { COPYFILE_EXCL } = fs.constants;
 ipcMain.on("copy-files", (event, copyInstructions) => {
-  copyInstructions.forEach(async ({ file, destination }) => {
-    try {
-      await fsp.copyFile(file, destination, COPYFILE_EXCL);
-      event.sender.send("copy-progress", file, destination);
-    } catch (e) {
-      console.log(`Error copying file ${file}`, e);
-    }
+  copyInstructions.forEach(({ file, destination }) => {
+    const copyFile = async (src, dest) => {
+      await fsp.copyFile(src, dest, COPYFILE_EXCL);
+    };
+
+    console.log("next copy attempt starting...");
+    copyFile(file, destination);
+    console.log("copy attempt finished");
+
+    event.sender.send("copy-progress", file, destination);
   });
+
   event.sender.send("files-copied");
 });
 
@@ -175,7 +179,7 @@ ipcMain.on("addGameId", (event, gameId, gameName) => {
   addGameId(gameId, gameName);
 });
 
-ipcMain.on("read-settings", async (event) => {
+ipcMain.on("read-settings", async event => {
   const filePath = `${app.getPath("home")}/.nssm/settings.json`;
   try {
     const fileContents = fs.readFileSync(filePath, "utf8");
@@ -218,7 +222,7 @@ ipcMain.on("change-path", async (event, pathName, value) => {
 ipcMain.on("select-sd-card-dir", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     title: "SD Card Directory",
-    properties: ["openDirectory"],
+    properties: ["openDirectory"]
   });
 
   let newPath;
@@ -243,7 +247,7 @@ ipcMain.on("select-sd-card-dir", async () => {
 ipcMain.on("select-output-dir", async () => {
   const result = await dialog.showOpenDialog(mainWindow, {
     title: "Output Directory",
-    properties: ["openDirectory"],
+    properties: ["openDirectory"]
   });
 
   let newPath;
@@ -264,7 +268,7 @@ ipcMain.on("select-output-dir", async () => {
 // Exit cleanly on request from parent process in development mode.
 if (isDevelopment) {
   if (process.platform === "win32") {
-    process.on("message", (data) => {
+    process.on("message", data => {
       if (data === "graceful-exit") {
         app.quit();
       }

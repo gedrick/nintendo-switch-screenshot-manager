@@ -51,8 +51,8 @@ export default {
   props: {
     subsection: {
       type: String,
-      default: "file-folder-locations",
-    },
+      default: "file-folder-locations"
+    }
   },
   components: {
     Progress,
@@ -60,7 +60,7 @@ export default {
     OutputDir,
     FileName,
     TypeSettings,
-    Resolve,
+    Resolve
   },
   data() {
     return {
@@ -75,8 +75,8 @@ export default {
       error: null,
       errors: {
         gameIdFetchError:
-          "Something went wrong while downloading the game ID file. Please try again.",
-      },
+          "Something went wrong while downloading the game ID file. Please try again."
+      }
     };
   },
   mounted() {
@@ -102,7 +102,7 @@ export default {
     },
     pathsAreValid() {
       return false;
-    },
+    }
   },
   methods: {
     ...mapMutations([
@@ -112,7 +112,7 @@ export default {
       "addGameId",
       "addUnknownGameId",
       "removeUnknownGameId",
-      "clearUnknownGameIds",
+      "clearUnknownGameIds"
     ]),
     cancelImport() {
       this.inProgress = false;
@@ -139,18 +139,18 @@ export default {
       const yearFolders = fs.readdirSync(sdCardDir);
       let allDirectories = [];
       yearFolders
-        .filter((name) => !name.startsWith("."))
-        .forEach((year) => {
+        .filter(name => !name.startsWith("."))
+        .forEach(year => {
           const yearFolder = `${sdCardDir}/${year}`;
           const monthFolders = fs.readdirSync(yearFolder);
           monthFolders
-            .filter((name) => !name.startsWith("."))
-            .forEach((month) => {
+            .filter(name => !name.startsWith("."))
+            .forEach(month => {
               const monthFolder = `${sdCardDir}/${year}/${month}`;
               const dayFolders = fs.readdirSync(monthFolder);
               dayFolders
-                .filter((name) => !name.startsWith("."))
-                .forEach((day) => {
+                .filter(name => !name.startsWith("."))
+                .forEach(day => {
                   allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
                 });
             });
@@ -178,10 +178,10 @@ export default {
     },
     processDirectories(directoryArray) {
       let filteredFiles = [];
-      directoryArray.forEach((directory) => {
+      directoryArray.forEach(directory => {
         const screenshotFiles = fs.readdirSync(directory);
         filteredFiles = filteredFiles.concat(
-          this.filterFiles(screenshotFiles).map((filename) => {
+          this.filterFiles(screenshotFiles).map(filename => {
             return `${directory}/${filename}`;
           })
         );
@@ -191,7 +191,7 @@ export default {
       this.generateInstructions(filteredFiles);
     },
     generateInstructions(filelist) {
-      filelist.forEach((screenshotFullPath) => {
+      filelist.forEach(screenshotFullPath => {
         const filename = screenshotFullPath.substring(
           screenshotFullPath.lastIndexOf("/") + 1
         );
@@ -255,7 +255,7 @@ export default {
         } else {
           this.copyInstructions.push({
             file: filePath,
-            destination: destinationPath,
+            destination: destinationPath
           });
         }
       }
@@ -274,7 +274,7 @@ export default {
         fileTypes.push("mp4");
       }
 
-      const files = filelist.filter((filename) => {
+      const files = filelist.filter(filename => {
         const validType = fileTypes.includes(filename.split(".")[1]);
         const validName = filename.match(/^\d+-[A-Z\d]+\.(jpg|mp4)$/);
         return validType && validName;
@@ -286,13 +286,13 @@ export default {
       const gameId = file[1].split(".")[0];
       const gameTitle = this.gameIds[gameId];
       return gameTitle || false;
-    },
-  },
+    }
+  }
 };
 </script>
 
 <style lang="scss">
-.section {
+#import {
   height: 100%;
   padding: 25px;
   display: flex;
