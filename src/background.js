@@ -161,11 +161,9 @@ async function importGameIds() {
 const { COPYFILE_EXCL } = fs.constants;
 ipcMain.on("copy-files", (event, copyInstructions) => {
   copyInstructions.forEach(async ({ file, destination }) => {
-    let filesCopied = 0;
     try {
-      await fs.copyFile(file, destination, COPYFILE_EXCL);
-      filesCopied += 1;
-      event.sender.send("copy-progress", file, destination, filesCopied);
+      await fsp.copyFile(file, destination, COPYFILE_EXCL);
+      event.sender.send("copy-progress", file, destination);
     } catch (e) {
       console.log(`Error copying file ${file}`, e);
     }

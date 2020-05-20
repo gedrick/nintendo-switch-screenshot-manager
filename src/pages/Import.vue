@@ -11,8 +11,12 @@
 
     <Resolve v-if="subsection === 'resolve'" />
 
-    <Progress>
+    <Progress v-if="inProgress && copyProgress > 0">
       Copied {{ copyProgress }} files out of {{ copyInstructions.length }}
+      <button class="btn btn-primary">Resolve</button>
+      <button @click="cancelImport" class="btn btn-secondary">
+        Cancel
+      </button>
     </Progress>
 
     <div class="actions">
@@ -33,7 +37,7 @@
 const fs = require("fs");
 const Electron = window.require("electron").remote;
 
-import Progress from "./components/Progress.vue";
+import Progress from "../components/Progress.vue";
 import SdCardDir from "../components/SdCardDir.vue";
 import OutputDir from "../components/OutputDir.vue";
 import FileName from "../components/FileName.vue";
@@ -43,7 +47,7 @@ import { ipcRenderer } from "electron";
 import { mapState, mapMutations } from "vuex";
 
 export default {
-  name: "App",
+  name: "Import",
   props: {
     subsection: {
       type: String,
@@ -60,6 +64,7 @@ export default {
   },
   data() {
     return {
+      copyProgress: 0,
       inResolveMode: false,
       inProgress: false,
       totalFiles: 0,
@@ -126,11 +131,13 @@ export default {
     beginImport(dryRun = true) {
       this.clearUnknownGameIds();
       this.importGameIds();
+      this.copyProgress = 0;
+      this.copyInstructions = [];
       this.inProgress = true;
 
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
-      let allDirectories = [];
       const yearFolders = fs.readdirSync(sdCardDir);
+      let allDirectories = [];
       yearFolders
         .filter((name) => !name.startsWith("."))
         .forEach((year) => {
@@ -152,23 +159,14 @@ export default {
       this.processDirectories(allDirectories);
 
       if (!dryRun) {
-        const copiesToMake = this.copyInstructions.length;
-        this.inProgress = true;
         ipcRenderer.send("copy-files", this.copyInstructions);
-        ipcRenderer.on(
-          "copy-progress",
-          (event, file, destination, progress) => {
-            this.copyProgress = progress;
-            // console.log(
-            //   `${copiesToMake}/${progress}: ${file} -> ${destination}`
-            // );
-          }
-        );
+        ipcRenderer.on("copy-progress", () => {
+          this.copyProgress++;
+        });
         ipcRenderer.once("files-copied", () => {
-          this.copyInstructions = [];
           if (this.unknownGameIds.length) {
             this.$emit("changeSection", "resolve");
-            this.inResolveMode = true;
+            // this.inResolveMode = true;
           }
         });
       } else {
