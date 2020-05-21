@@ -1,5 +1,11 @@
 <template>
   <div class="section" id="manage">
+    <div v-if="isDragging" class="drag-overlay">
+      <span class="icon icon-picture"></span>
+      <p>
+        Dragging file - you can drop in your file system or in a web browser.
+      </p>
+    </div>
     <div class="controls">
       <div>
         <button class="btn btn-default" @click="home()">
@@ -42,12 +48,19 @@
             {{ directory }}
           </div>
         </div>
-        <div class="file" v-if="getType(directory) === 'image'">
-          <div class="file-icon">
-            <span class="icon icon-picture"></span>
-          </div>
-          <div class="image">
-            <img class="screenshot" :src="buildImagePath(directory)" />
+        <div
+          class="file"
+          @dragstart="beginDrag()"
+          @dragend="endDrag()"
+          v-if="getType(directory) === 'image'"
+        >
+          <div class="file-container">
+            <!-- <div class="file-icon">
+              <span class="icon icon-picture"></span>
+            </div> -->
+            <div class="image">
+              <img class="screenshot" :src="buildImagePath(directory)" />
+            </div>
           </div>
           <div class="title">
             {{ directory }}
@@ -88,7 +101,9 @@ export default {
       directory: null,
       history: [],
 
-      columns: 3
+      columns: 3,
+
+      isDragging: false
     };
   },
   mounted() {
@@ -109,6 +124,12 @@ export default {
     }
   },
   methods: {
+    beginDrag() {
+      this.isDragging = true;
+    },
+    endDrag() {
+      this.isDragging = false;
+    },
     changePath(path) {
       this.directory += `/${path}`;
       this.history.push(path);
@@ -141,6 +162,31 @@ export default {
 </script>
 
 <style lang="scss">
+.drag-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-content: center;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(blue, 0.3);
+  color: white;
+  z-index: 5;
+  font-size: 40px;
+  .icon {
+    align-self: center;
+    font-size: 30px;
+  }
+  p {
+    width: 50%;
+    text-align: center;
+    align-self: center;
+  }
+}
+
 #manage {
   height: 100%;
   padding: 25px;
@@ -187,17 +233,19 @@ export default {
 }
 
 .file {
-  position: relative;
   width: 100%;
   height: 100%;
 
   & * {
     cursor: pointer;
   }
+  .file-container {
+    position: relative;
+  }
 
   .file-icon {
-    width: 100%;
-    height: 100%;
+    width: 50px;
+    height: 50px;
     position: absolute;
     top: 0;
     left: 0;
@@ -214,6 +262,7 @@ export default {
   &:hover .icon {
     opacity: 1;
   }
+
   .icon {
     padding-right: 5px;
     align-self: center;
@@ -224,6 +273,9 @@ export default {
     &::before {
       font-size: 30px;
       color: #fff;
+      background-color: rgba(#000, 0.3);
+      padding: 5px;
+      border-radius: 5px;
     }
   }
 
