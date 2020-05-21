@@ -50,14 +50,14 @@
         </div>
         <div
           class="file"
-          @dragstart="beginDrag()"
-          @dragend="endDrag()"
+          @drag="beginDrag(event)"
+          @dragend.passive="endDrag(even)"
           v-if="getType(directory) === 'image'"
         >
           <div class="file-container">
-            <!-- <div class="file-icon">
+            <div class="file-icon">
               <span class="icon icon-picture"></span>
-            </div> -->
+            </div>
             <div class="image">
               <img class="screenshot" :src="buildImagePath(directory)" />
             </div>
@@ -93,8 +93,8 @@ export default {
       type: Array,
       default: () => {
         return ["mp4", "jpg"];
-      }
-    }
+      },
+    },
   },
   data() {
     return {
@@ -103,7 +103,7 @@ export default {
 
       columns: 3,
 
-      isDragging: false
+      isDragging: false,
     };
   },
   mounted() {
@@ -119,15 +119,17 @@ export default {
     },
     cssVars() {
       return {
-        "--column-count": "1fr ".repeat(this.columns)
+        "--column-count": "1fr ".repeat(this.columns),
       };
-    }
+    },
   },
   methods: {
     beginDrag() {
+      console.log("beginDrag");
       this.isDragging = true;
     },
     endDrag() {
+      console.log("endDrag");
       this.isDragging = false;
     },
     changePath(path) {
@@ -156,8 +158,8 @@ export default {
     },
     buildImagePath(path) {
       return `file://${this.directory}/${path}`;
-    }
-  }
+    },
+  },
 };
 </script>
 
