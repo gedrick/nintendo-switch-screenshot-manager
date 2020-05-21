@@ -38,7 +38,7 @@
               <span class="icon icon-camera"></span>
               View All
             </a>
-            <a
+            <!-- <a
               class="nav-group-item"
               :class="{ active: subsection === 'screenshots' }"
               @click="setActivePage('manage', 'screenshots')"
@@ -61,13 +61,13 @@
             >
               <span class="icon icon-calendar"></span>
               Recent
-            </a>
+            </a> -->
           </nav>
         </div>
         <div class="pane">
           <Import
             v-if="section === 'import'"
-            @changeSection="(section) => (subsection = section)"
+            @changeSection="section => (subsection = section)"
             :subsection="subsection"
           />
           <Manage v-if="section === 'manage'" :subsection="subsection" />
@@ -85,20 +85,20 @@ export default {
   name: "Home",
   components: {
     Import,
-    Manage,
+    Manage
   },
   data() {
     return {
       section: "import",
-      subsection: "file-folder-locations",
+      subsection: "file-folder-locations"
     };
   },
   methods: {
     setActivePage(section, subsection) {
       this.section = section;
       this.subsection = subsection;
-    },
-  },
+    }
+  }
 };
 </script>
 

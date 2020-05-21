@@ -27,7 +27,7 @@
         :disabled="!readyToImport"
       >
         <span class="icon icon-camera"></span>
-        <span class="label">Import Screenshots</span>
+        <span class="label">Start Importing</span>
       </button>
     </div>
   </div>
