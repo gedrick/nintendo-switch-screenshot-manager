@@ -52,8 +52,8 @@
         </div>
         <div
           class="file"
-          @drag="beginDrag(event)"
-          @dragend.passive="endDrag(even)"
+          @drag="isDragging = true"
+          @dragend.passive="isDragging = false"
           v-if="getType(directory) === 'image'"
         >
           <div class="file-container">
@@ -95,8 +95,8 @@ export default {
       type: Array,
       default: () => {
         return ["mp4", "jpg"];
-      },
-    },
+      }
+    }
   },
   data() {
     return {
@@ -105,7 +105,7 @@ export default {
 
       columns: 3,
 
-      isDragging: false,
+      isDragging: false
     };
   },
   mounted() {
@@ -121,17 +121,15 @@ export default {
     },
     cssVars() {
       return {
-        "--column-count": "1fr ".repeat(this.columns),
+        "--column-count": "1fr ".repeat(this.columns)
       };
-    },
+    }
   },
   methods: {
     beginDrag() {
-      console.log("beginDrag");
       this.isDragging = true;
     },
     endDrag() {
-      console.log("endDrag");
       this.isDragging = false;
     },
     changePath(path) {
@@ -160,8 +158,8 @@ export default {
     },
     buildImagePath(path) {
       return `file://${this.directory}/${path}`;
-    },
-  },
+    }
+  }
 };
 </script>
 
@@ -241,6 +239,9 @@ export default {
 .file {
   width: 100%;
   height: 100%;
+  padding: 5px;
+  background-color: rgba(#000, 0.1);
+  border-radius: 5px;
 
   & * {
     cursor: pointer;
