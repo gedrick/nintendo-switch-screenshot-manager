@@ -67,7 +67,7 @@
         <div class="pane">
           <Import
             v-if="section === 'import'"
-            @changeSection="section => (subsection = section)"
+            @changeSection="(section) => (subsection = section)"
             :subsection="subsection"
           />
           <Manage v-if="section === 'manage'" :subsection="subsection" />
@@ -85,20 +85,20 @@ export default {
   name: "Home",
   components: {
     Import,
-    Manage
+    Manage,
   },
   data() {
     return {
       section: "import",
-      subsection: "file-folder-locations"
+      subsection: "file-folder-locations",
     };
   },
   methods: {
     setActivePage(section, subsection) {
       this.section = section;
       this.subsection = subsection;
-    }
-  }
+    },
+  },
 };
 </script>
 
@@ -148,6 +148,10 @@ body {
   cursor: pointer;
 }
 
+.btn[disabled="disabled"] {
+  opacity: 0.5;
+}
+
 .btn-action {
   .label {
     padding: 10px;
@@ -172,23 +176,5 @@ body {
   &.green {
     background-color: rgba(green, 0.3);
   }
-}
-
-.btn-primary {
-  // font-size: 20px;
-}
-
-.btn-default {
-  // font-size: 15px;
-}
-
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s;
-}
-
-.fade-enter,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

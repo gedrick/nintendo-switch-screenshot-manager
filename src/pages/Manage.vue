@@ -11,22 +11,24 @@
         <button class="btn btn-default" @click="home()">
           Home
         </button>
-      </div>
-      <div>
-        <button v-if="history.length" class="btn btn-default" @click="back()">
+        <button
+          :disabled="!history || !history.length"
+          class="btn btn-default"
+          @click="back()"
+        >
           Back
         </button>
       </div>
       <div>
         <button
-          v-if="columns < 3"
+          :disabled="columns === 3"
           class="btn btn-default"
           @click="adjustColumns(1)"
         >
           Smaller
         </button>
         <button
-          v-if="columns > 1"
+          :disabled="columns === 1"
           class="btn btn-default"
           @click="adjustColumns(-1)"
         >
@@ -224,6 +226,8 @@ export default {
   }
   & * {
     cursor: pointer;
+    align-self: flex-start;
+    text-align: left;
   }
 
   .icon {
