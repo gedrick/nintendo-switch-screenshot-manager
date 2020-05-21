@@ -19,6 +19,15 @@
           Back
         </button>
       </div>
+      <div class="search">
+        <input
+          type="text"
+          name="search"
+          @keyup="onFilterKeyPress"
+          v-model="filterStr"
+          placeholder="filter"
+        />
+      </div>
       <div>
         <button
           :disabled="columns === 3"
@@ -100,6 +109,7 @@ export default {
   },
   data() {
     return {
+      filterStr: "",
       directory: null,
       history: [],
 
@@ -117,7 +127,10 @@ export default {
       if (!this.directory) {
         return [];
       }
-      return fs.readdirSync(this.directory);
+      const files = fs.readdirSync(this.directory);
+      return files.filter(filename => {
+        return filename.toLowerCase().includes(this.filterStr.toLowerCase());
+      });
     },
     cssVars() {
       return {
@@ -126,6 +139,11 @@ export default {
     }
   },
   methods: {
+    onFilterKeyPress(event) {
+      if (event.key === "Escape") {
+        this.filterStr = "";
+      }
+    },
     beginDrag() {
       this.isDragging = true;
     },
