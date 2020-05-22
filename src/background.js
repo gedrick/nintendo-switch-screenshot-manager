@@ -43,6 +43,15 @@ const mainMenuTemplate = [
   }
 ];
 
+function createUpdateWindow() {
+  const win = new BrowserWindow({
+    width: 800,
+    height: 600,
+    autoHideMenuBar: true
+  });
+  win.loadURL(paths.baseUrl);
+}
+
 function createMainWindow() {
   // Create the browser window.
   mainWindow = new BrowserWindow({
@@ -106,8 +115,13 @@ app.on("ready", async () => {
       console.error("Vue Devtools failed to install:", e.toString());
     }
   }
-  await importGameIds();
-  createMainWindow();
+  const updateAvailable = await checkForUpdates();
+  if (!updateAvailable) {
+    await importGameIds();
+    createMainWindow();
+  } else {
+    createUpdateWindow();
+  }
 });
 
 import axios from "axios";
@@ -126,13 +140,52 @@ function addGameId(gameId, gameName) {
   }
 }
 
-async function importGameIds() {
-  const res = await axios(paths.gameIdPath, {
-    method: "get",
-    headers: {
-      "Content-Type": "application/json"
+async function checkForUpdates() {
+  const currentVersion = require("../package.json").version;
+  let res;
+  try {
+    res = await axios(paths.versionPath, {
+      method: "get",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+  } catch (e) {
+    // Error downloading file or user is not online.
+    return false;
+  }
+
+  const { data } = res;
+  if (data.latest !== currentVersion) {
+    const response = await dialog.showMessageBox({
+      message: `A new version is available (${data.latest}). You are running version ${currentVersion}. Would you like to download the new version?`,
+      type: "question",
+      buttons: ["Cancel", "OK"],
+      cancelId: 0
+    });
+
+    if (response.response === 1) {
+      return true;
     }
-  });
+  }
+
+  return false;
+}
+
+async function importGameIds() {
+  let res;
+  try {
+    res = await axios(paths.gameIdPath, {
+      method: "get",
+      headers: {
+        "Content-Type": "application/json"
+      }
+    });
+  } catch (e) {
+    res = {
+      data: {}
+    };
+  }
   const { data } = res;
   const filePath = `${app.getPath("home")}/.nssm/game_ids.json`;
   let fileContents;
@@ -187,7 +240,6 @@ ipcMain.on("read-settings", async event => {
     event.sender.send("receive-settings", settingsObj);
   } catch (e) {
     event.sender.send("receive-settings", {});
-    // File doesn't exist.
   }
 });
 
