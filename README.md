@@ -1,4 +1,4 @@
-# Nintendo Switch Screenshot Manager
+# Nintendo Switch Screenshot Importer
 
 ## Automatically import your Switch screenshots and videos
 
