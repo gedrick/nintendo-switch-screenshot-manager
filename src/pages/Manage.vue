@@ -196,14 +196,17 @@ export default {
   color: white;
   z-index: 5;
   font-size: 40px;
+
   .icon {
     align-self: center;
     font-size: 30px;
   }
+
   p {
     width: 50%;
     text-align: center;
     align-self: center;
+    line-height: 1;
   }
 }
 
