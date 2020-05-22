@@ -19,6 +19,7 @@
   align-content: center;
   justify-content: center;
 }
+
 .sub-container {
   display: flex;
   justify-content: center;
@@ -28,5 +29,6 @@
   height: 50%;
   background-color: #fff;
   flex-direction: column;
+  box-shadow: 5px 5px 5px rgba(black, 0.5);
 }
 </style>
