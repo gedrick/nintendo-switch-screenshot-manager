@@ -1,24 +1,22 @@
-# nssm
+# Nintendo Switch Screenshot Manager
 
-## Project setup
-```
-npm install
-```
+## Automatically import your Switch screenshots and videos
 
-### Compiles and hot-reloads for development
-```
-npm run serve
-```
+Are you sick of manually copying and renaming files from your Switch's SD card? As someone who writes about video games quite often, I need to offload screenshots every week or so. The problem is, the Nintendo Switch organizes screenshots and screen recordings into specific day, month, and year folders, as well as using a time, date, and unique ID for the file names.
 
-### Compiles and minifies for production
-```
-npm run build
-```
+The results can be, well, frustrating to say the least, when you can't easily import your screenshots.
 
-### Lints and fixes files
+I created this tool so that I would have one-click access to all of my screenshots, whenever I needed them. You just need to set your SD card path and where you want to save the screenshots one time, and then you'll have one-button importing completely set up.
+
+Better yet, it will match the screenshot IDs with the title of the game, so
+
 ```
-npm run lint
+2020032109550200-02CB906EA538A35643C1E1484C4B947D.jpg
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+becomes
+
+
+```
+Animal_Crossing_-_New_Horizons-01-04-2020-10534300.jpg
+```
