@@ -1,7 +1,15 @@
 "use strict";
 
 import fs from "fs";
-import { app, protocol, BrowserWindow, Menu, ipcMain, dialog } from "electron";
+import {
+  app,
+  protocol,
+  BrowserWindow,
+  Menu,
+  ipcMain,
+  dialog,
+  shell
+} from "electron";
 import {
   createProtocol,
   installVueDevtools
@@ -23,10 +31,25 @@ const mainMenuTemplate = [
     label: "File",
     submenu: [
       {
-        label: "Open Output Folder",
+        label: "Open Mapping File",
         accelerator: process.platform === "darwin" ? "Cmd+O" : "Ctrl+O",
         click() {
+          const filePath = `${app.getPath("home")}/.nssm/game_ids.json`;
+          shell.openItem(filePath);
           console.log("open output folder!");
+        }
+      },
+      {
+        label: "Check for Updates",
+        click: async () => {
+          const updateAvailable = await checkForUpdates();
+          if (!updateAvailable) {
+            showInfoMessage("You are already using the latest version.");
+          } else {
+            if (await checkToUpdate()) {
+              createUpdateWindow();
+            }
+          }
         }
       },
       {
@@ -77,8 +100,8 @@ function createMainWindow() {
     mainWindow.loadURL("app://./index.html");
   }
 
-  // const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
-  const mainMenu = Menu.buildFromTemplate([]);
+  const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
+  // const mainMenu = Menu.buildFromTemplate([]);
   Menu.setApplicationMenu(mainMenu);
 
   mainWindow.on("closed", () => {
@@ -117,12 +140,33 @@ app.on("ready", async () => {
   }
   const updateAvailable = await checkForUpdates();
   if (!updateAvailable) {
-    await importGameIds();
-    createMainWindow();
+    loadApp();
   } else {
-    createUpdateWindow();
+    if (await checkToUpdate()) {
+      createUpdateWindow();
+    } else {
+      loadApp();
+    }
   }
 });
+
+async function checkToUpdate() {
+  const response = await dialog.showMessageBox({
+    message: `A new version is available. Would you like to download it now?`,
+    type: "question",
+    buttons: ["No", "Yes"],
+    cancelId: 0
+  });
+
+  if (response.response === 1) {
+    return true;
+  }
+}
+
+async function loadApp() {
+  await importGameIds();
+  createMainWindow();
+}
 
 import axios from "axios";
 import paths from "./paths.js";
@@ -138,6 +182,15 @@ function addGameId(gameId, gameName) {
       fs.writeFileSync(filePath, JSON.stringify(gameMap, null, 2), "utf8");
     }
   }
+}
+
+function showInfoMessage(message) {
+  dialog.showMessageBoxSync(mainWindow, {
+    type: "info",
+    buttons: ["OK"],
+    cancelId: 0,
+    message
+  });
 }
 
 async function checkForUpdates() {
@@ -157,16 +210,7 @@ async function checkForUpdates() {
 
   const { data } = res;
   if (data.latest !== currentVersion) {
-    const response = await dialog.showMessageBox({
-      message: `A new version is available (${data.latest}). You are running version ${currentVersion}. Would you like to download the new version?`,
-      type: "question",
-      buttons: ["Cancel", "OK"],
-      cancelId: 0
-    });
-
-    if (response.response === 1) {
-      return true;
-    }
+    return true;
   }
 
   return false;
