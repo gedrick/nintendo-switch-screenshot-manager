@@ -12,11 +12,32 @@
     <Resolve v-if="subsection === 'resolve'" />
 
     <Progress v-if="inProgress && copyProgress > 0">
-      Copied {{ copyProgress }} files out of {{ copyInstructions.length }}
-      <button class="btn btn-primary">Resolve</button>
-      <button @click="cancelImport" class="btn btn-secondary">
-        Cancel
-      </button>
+      <div class="progress-bar">
+        <div class="progress-bar-filler"></div>
+        <span>Imported {{ copyProgress }} new files</span>
+      </div>
+      <div class="resolve-warning">
+        Some files were unable to be imported due to an unknown game ID. Click
+        <b>Resolve</b> to fix them now.
+      </div>
+      <div class="controls">
+        <button
+          v-if="
+            copyProgress >= copyInstructions.length && unknownGameIds.length
+          "
+          class="btn btn-primary btn-large"
+        >
+          Resolve
+        </button>
+        <button @click="cancelImport" class="btn btn-secondary btn-large">
+          <span v-if="copyProgress >= copyInstructions.length">
+            Close
+          </span>
+          <span v-if="copyProgress < copyInstructions.length">
+            Cancel
+          </span>
+        </button>
+      </div>
     </Progress>
 
     <div class="actions">
@@ -70,6 +91,7 @@ export default {
       totalFiles: 0,
       doneFiles: 0,
       skippedFiles: 0,
+      recentFiles: [],
 
       copyInstructions: [],
       error: null,
@@ -92,6 +114,11 @@ export default {
   },
   computed: {
     ...mapState(["settings", "gameIds", "unknownGameIds"]),
+    calculateProgressWidth() {
+      const total = this.copyInstructions.length;
+      const complete = this.copyProgress;
+      return (complete / total) * 10;
+    },
     readyToImport() {
       return (
         this.settings.outputDir &&
@@ -159,8 +186,13 @@ export default {
       this.processDirectories(allDirectories);
 
       if (!dryRun) {
+        this.recentFiles = [];
         ipcRenderer.send("copy-files", this.copyInstructions);
-        ipcRenderer.on("copy-progress", () => {
+        ipcRenderer.on("copy-progress", (event, src, destination) => {
+          if (destination) {
+            this.recentFiles.push(destination);
+          }
+
           this.copyProgress++;
         });
         ipcRenderer.once("files-copied", () => {
@@ -170,6 +202,7 @@ export default {
           }
         });
       } else {
+        // Currently, not getting here, ever.
         if (this.unknownGameIds.length) {
           this.$emit("changeSection", "resolve");
           this.inResolveMode = true;
@@ -198,12 +231,10 @@ export default {
 
         const gameName = this.getGameTitle(filename);
         if (!gameName) {
-          // console.log(`Game mapping not found for ${filename}.`);
           const gameId = this.getGameIdFromFileName(filename);
           ipcRenderer.send("addGameId", gameId, "");
           this.addUnknownGameId({ gameId, screenshotPath: screenshotFullPath });
         } else {
-          // console.log(`Backing up screenshot for ${gameName}`);
           this.backupFile(screenshotFullPath, gameName);
         }
 
