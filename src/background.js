@@ -16,10 +16,14 @@ import {
 } from "vue-cli-plugin-electron-builder/lib";
 const fsp = fs.promises;
 const isDevelopment = process.env.NODE_ENV !== "production";
+const testingFlags = {
+  updateAvailable: true
+};
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
+let childWindow;
 
 // Scheme must be registered before the app is ready
 protocol.registerSchemesAsPrivileged([
@@ -67,12 +71,17 @@ const mainMenuTemplate = [
 ];
 
 function createUpdateWindow() {
-  const win = new BrowserWindow({
+  childWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    autoHideMenuBar: true
+    modal: true,
+    autoHideMenuBar: true,
+    parent: mainWindow
   });
-  win.loadURL(paths.baseUrl);
+  childWindow.loadURL(paths.baseUrl);
+  childWindow.once("ready-to-show", () => {
+    childWindow.show();
+  });
 }
 
 function createMainWindow() {
@@ -142,10 +151,10 @@ app.on("ready", async () => {
   if (!updateAvailable) {
     loadApp();
   } else {
-    if (await checkToUpdate()) {
+    const launchUpdater = await checkToUpdate();
+    loadApp();
+    if (launchUpdater) {
       createUpdateWindow();
-    } else {
-      loadApp();
     }
   }
 });
@@ -209,7 +218,10 @@ async function checkForUpdates() {
   }
 
   const { data } = res;
-  if (data.latest !== currentVersion) {
+  if (
+    data.latest !== currentVersion ||
+    (process.env.NODE_ENV !== "production" && testingFlags.updateAvailable)
+  ) {
     return true;
   }
 
