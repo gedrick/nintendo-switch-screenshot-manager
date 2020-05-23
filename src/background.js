@@ -57,6 +57,16 @@ const mainMenuTemplate = [
         }
       },
       {
+        label: "Clear Log File",
+        click: () => {
+          const filePath = `${app.getPath("home")}/.nssm/log.txt`;
+          fs.writeFileSync(filePath, "", "utf8");
+        }
+      },
+      {
+        type: "separator"
+      },
+      {
         label: "Check for Updates",
         click: async () => {
           const updateAvailable = await checkForUpdates();
@@ -69,9 +79,7 @@ const mainMenuTemplate = [
           }
         }
       },
-      {
-        type: "separator"
-      },
+
       {
         label: "Quit",
         accelerator: process.platform === "darwin" ? "Cmd+Q" : "Ctrl+Q",
@@ -190,9 +198,14 @@ function addGameId(gameId, gameName) {
     const gameMap = JSON.parse(fileContents);
     if (!Object.keys(gameMap).includes(gameId) || !gameMap[gameId]) {
       gameMap[gameId] = gameName;
+
       try {
         fs.writeFileSync(filePath, JSON.stringify(gameMap, null, 2), "utf8");
-        console.log(`Wrote new game mapping for ${gameName}`);
+        if (gameName) {
+          log(`Wrote new game mapping for ${gameName}`);
+        } else {
+          log(`Wrote empty mapping for ${gameId}`);
+        }
       } catch (e) {
         log(`Error writing game ID mapping: ${e}`, "error");
       }
@@ -278,22 +291,23 @@ async function importGameIds() {
 
 ipcMain.on("copy-files", (event, copyInstructions) => {
   mainWindow.setProgressBar(0);
-  const totalFiles = copyInstructions.length;
-  let completedFiles = 0;
+  log(`Beginning to copy ${copyInstructions.length} files...`);
   copyInstructions.forEach(({ file, destination }) => {
     const copyFile = async (src, dest) => {
-      await fsp.copyFile(src, dest, COPYFILE_EXCL);
+      try {
+        await fsp.copyFile(src, dest, COPYFILE_EXCL);
+      } catch (e) {
+        log(`File already exists: ${destination}`);
+      }
     };
 
     copyFile(file, destination);
-    completedFiles++;
-    mainWindow.setProgressBar(totalFiles / completedFiles / 10);
     log(`Finished copying file ${file} to ${destination}.`);
 
     event.sender.send("copy-progress", file, destination);
   });
 
-  mainWindow.setProgressBar(1);
+  log(`Finished copying files`);
   event.sender.send("files-copied");
 });
 
