@@ -15,11 +15,13 @@ import {
   installVueDevtools
 } from "vue-cli-plugin-electron-builder/lib";
 const fsp = fs.promises;
+const { COPYFILE_EXCL } = fs.constants;
 const isDevelopment = process.env.NODE_ENV !== "production";
 const testingFlags = {
-  updateAvailable: true
+  updateAvailable: false
 };
 
+import log from "../server/logging.js";
 import { mainWindowTemplate, updateWindowTemplate } from "../server/windows.js";
 
 // Keep a global reference of the window object, if you don't, the window will
@@ -39,10 +41,10 @@ const mainMenuTemplate = [
       {
         label: "Open Mapping File",
         accelerator: process.platform === "darwin" ? "Cmd+O" : "Ctrl+O",
-        click() {
+        click: () => {
           const filePath = `${app.getPath("home")}/.nssm/game_ids.json`;
           shell.openItem(filePath);
-          console.log("open output folder!");
+          log("Output folder opened.");
         }
       },
       {
@@ -179,7 +181,12 @@ function addGameId(gameId, gameName) {
     const gameMap = JSON.parse(fileContents);
     if (!Object.keys(gameMap).includes(gameId) || !gameMap[gameId]) {
       gameMap[gameId] = gameName;
-      fs.writeFileSync(filePath, JSON.stringify(gameMap, null, 2), "utf8");
+      try {
+        fs.writeFileSync(filePath, JSON.stringify(gameMap, null, 2), "utf8");
+        console.log(`Wrote new game mapping for ${gameName}`);
+      } catch (e) {
+        log(`Error writing game ID mapping: ${e}`, "error");
+      }
     }
   }
 }
@@ -194,7 +201,6 @@ function showInfoMessage(message) {
 }
 
 async function checkForUpdates() {
-  const currentVersion = require("../package.json").version;
   let res;
   try {
     res = await axios(paths.versionPath, {
@@ -205,14 +211,17 @@ async function checkForUpdates() {
     });
   } catch (e) {
     // Error downloading file or user is not online.
+    log("Error checking for updates or user is not online", "error");
     return false;
   }
 
   const { data } = res;
+  const currentVersion = require("../package.json").version;
   if (
     data.latest !== currentVersion ||
     (process.env.NODE_ENV !== "production" && testingFlags.updateAvailable)
   ) {
+    await log(`Update available: ${data.latest}, from ${currentVersion}.`);
     return true;
   }
 
@@ -229,6 +238,7 @@ async function importGameIds() {
       }
     });
   } catch (e) {
+    log(`Error downloading latest game ID mapping: ${e}`, "error");
     res = {
       data: {}
     };
@@ -241,37 +251,40 @@ async function importGameIds() {
     fileContents = await fsp.readFile(filePath);
     const oldGameMap = JSON.parse(fileContents);
     const newGameMap = data;
-    console.log("trying to update game id map", filePath);
     const newJson = {
       ...newGameMap,
       ...oldGameMap
     };
     await fsp.writeFile(filePath, JSON.stringify(newJson, null, 2), "utf8");
+    log("Game ID mapping file was updated.");
   } else {
-    console.log("trying to set game id map", filePath);
     try {
       await fsp.mkdir(`${app.getPath("home")}/.nssm/`, { recursive: true });
       await fsp.writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
     } catch (e) {
-      console.log(e);
+      log(`Error updating game ID mapping: ${e}`, "error");
     }
   }
 }
 
-const { COPYFILE_EXCL } = fs.constants;
 ipcMain.on("copy-files", (event, copyInstructions) => {
+  mainWindow.setProgressBar(0);
+  const totalFiles = copyInstructions.length;
+  let completedFiles = 0;
   copyInstructions.forEach(({ file, destination }) => {
     const copyFile = async (src, dest) => {
       await fsp.copyFile(src, dest, COPYFILE_EXCL);
     };
 
-    console.log("next copy attempt starting...");
     copyFile(file, destination);
-    console.log("copy attempt finished");
+    completedFiles++;
+    mainWindow.setProgressBar(totalFiles / completedFiles / 10);
+    log(`Finished copying file ${file} to ${destination}.`);
 
     event.sender.send("copy-progress", file, destination);
   });
 
+  mainWindow.setProgressBar(1);
   event.sender.send("files-copied");
 });
 
