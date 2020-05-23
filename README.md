@@ -1,4 +1,4 @@
-# Nintendo Switch Screenshot Importer
+# Nintendo Switch Screenshot Manager
 
 ## Automatically import your Switch screenshots and videos
 
@@ -20,3 +20,7 @@ becomes
 ```
 Animal_Crossing_-_New_Horizons-01-04-2020-10534300.jpg
 ```
+
+Here's some before and after pics!
+
+![before and after](https://github.com/gedrick/nintendo-switch-screenshot-manager/raw/master/screenshots/before-after.png)
