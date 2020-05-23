@@ -20,6 +20,8 @@ const testingFlags = {
   updateAvailable: true
 };
 
+import { mainWindowTemplate, updateWindowTemplate } from "../server/windows.js";
+
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow;
@@ -70,32 +72,9 @@ const mainMenuTemplate = [
   }
 ];
 
-function createUpdateWindow() {
-  childWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    modal: true,
-    autoHideMenuBar: true,
-    parent: mainWindow
-  });
-  childWindow.loadURL(paths.baseUrl);
-  childWindow.once("ready-to-show", () => {
-    childWindow.show();
-  });
-}
-
 function createMainWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow({
-    width: 700,
-    height: 600,
-    webPreferences: {
-      nodeIntegration: true,
-      enableRemoteModule: true,
-      webSecurity: false
-    },
-    resizable: true
-  });
+  mainWindow = new BrowserWindow(mainWindowTemplate);
 
   Menu.buildFromTemplate(mainMenuTemplate);
 
@@ -115,6 +94,17 @@ function createMainWindow() {
 
   mainWindow.on("closed", () => {
     mainWindow = null;
+  });
+}
+
+function createUpdateWindow() {
+  childWindow = new BrowserWindow({
+    ...updateWindowTemplate,
+    parent: mainWindow
+  });
+  childWindow.loadURL(paths.baseUrl);
+  childWindow.once("ready-to-show", () => {
+    childWindow.show();
   });
 }
 
@@ -139,14 +129,6 @@ app.on("activate", () => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.on("ready", async () => {
-  if (isDevelopment && !process.env.IS_TEST) {
-    // Install Vue Devtools
-    try {
-      await installVueDevtools();
-    } catch (e) {
-      console.error("Vue Devtools failed to install:", e.toString());
-    }
-  }
   const updateAvailable = await checkForUpdates();
   if (!updateAvailable) {
     loadApp();
@@ -155,6 +137,15 @@ app.on("ready", async () => {
     loadApp();
     if (launchUpdater) {
       createUpdateWindow();
+    }
+  }
+
+  if (isDevelopment && !process.env.IS_TEST) {
+    // Install Vue Devtools
+    try {
+      await installVueDevtools();
+    } catch (e) {
+      console.error("Vue Devtools failed to install:", e.toString());
     }
   }
 });
