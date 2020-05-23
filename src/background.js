@@ -40,11 +40,20 @@ const mainMenuTemplate = [
     submenu: [
       {
         label: "Open Mapping File",
-        accelerator: process.platform === "darwin" ? "Cmd+O" : "Ctrl+O",
         click: () => {
           const filePath = `${app.getPath("home")}/.nssm/game_ids.json`;
-          shell.openItem(filePath);
-          log("Output folder opened.");
+          if (fs.existsSync(filePath)) {
+            shell.openItem(filePath);
+          }
+        }
+      },
+      {
+        label: "Open Log File",
+        click: () => {
+          const filePath = `${app.getPath("home")}/.nssm/log.txt`;
+          if (fs.existsSync(filePath)) {
+            shell.openItem(filePath);
+          }
         }
       },
       {
