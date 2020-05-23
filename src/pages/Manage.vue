@@ -25,7 +25,7 @@
           name="search"
           @keyup="onFilterKeyPress"
           v-model="filterStr"
-          placeholder="filter"
+          placeholder="filter (esc to clear)"
         />
       </div>
       <div>
@@ -61,6 +61,7 @@
         </div>
         <div
           class="file"
+          @click="openFileInFolder(directory)"
           @drag="isDragging = true"
           @dragend.passive="isDragging = false"
           v-if="getType(directory) === 'image'"
@@ -77,12 +78,18 @@
             {{ directory }}
           </div>
         </div>
-        <div class="file" v-if="getType(directory) === 'video'">
-          <div class="file-icon">
-            <span class="icon icon-video"></span>
-          </div>
-          <div class="image">
-            <img class="screenshot" :src="buildImagePath(directory)" />
+        <div
+          class="file video"
+          @click="openFileInFolder(directory)"
+          v-if="getType(directory) === 'video'"
+        >
+          <div class="file-container">
+            <div class="file-icon">
+              <span class="icon icon-video"></span>
+            </div>
+            <div class="image">
+              <div class="screenshot-placeholder"></div>
+            </div>
           </div>
           <div class="title">
             {{ directory }}
@@ -95,6 +102,8 @@
 
 <script>
 const fs = require("fs");
+const Electron = window.require("electron").remote;
+const shell = Electron.shell;
 import { mapState } from "vuex";
 
 export default {
@@ -139,6 +148,9 @@ export default {
     }
   },
   methods: {
+    openFileInFolder(filePath) {
+      shell.showItemInFolder(`${this.directory}/${filePath}`);
+    },
     onFilterKeyPress(event) {
       if (event.key === "Escape") {
         this.filterStr = "";
@@ -267,14 +279,15 @@ export default {
   & * {
     cursor: pointer;
   }
+
   .file-container {
     position: relative;
   }
 
   .file-icon {
+    position: absolute;
     width: 50px;
     height: 50px;
-    position: absolute;
     top: 0;
     left: 0;
     display: flex;
@@ -304,6 +317,18 @@ export default {
       background-color: rgba(#000, 0.3);
       padding: 5px;
       border-radius: 5px;
+    }
+  }
+
+  &.video {
+    .icon {
+      opacity: 1;
+      pointer-events: unset;
+    }
+
+    .screenshot-placeholder {
+      width: 100px;
+      height: 100px;
     }
   }
 
