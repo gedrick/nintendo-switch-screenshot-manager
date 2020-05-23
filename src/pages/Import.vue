@@ -25,6 +25,7 @@
           v-if="
             copyProgress >= copyInstructions.length && unknownGameIds.length
           "
+          @click="showResolveScreen"
           class="btn btn-primary btn-large"
         >
           Resolve
@@ -147,7 +148,10 @@ export default {
       this.doneFiles = 0;
       this.skippedFiles = 0;
     },
-
+    showResolveScreen() {
+      this.cancelImport();
+      this.$emit("changeSection", "resolve");
+    },
     importGameIds() {
       const gameIds = fs.readFileSync(
         `${Electron.app.getPath("home")}/.nssm/game_ids.json`,

@@ -21,6 +21,14 @@ becomes
 Animal_Crossing_-_New_Horizons-01-04-2020-10534300.jpg
 ```
 
-Here's some before and after pics!
+Set up your file/folder structure as you see fit:
+
+![file folder naming](https://github.com/gedrick/nintendo-switch-screenshot-manager/raw/master/screenshots/file-naming.png)
+
+Here's some before and after pics:
 
 ![before and after](https://github.com/gedrick/nintendo-switch-screenshot-manager/raw/master/screenshots/before-after.png)
+
+You can also drag and drop right from the app interface into your blogging software or file browser.
+
+![drag and drop](https://github.com/gedrick/nintendo-switch-screenshot-manager/raw/master/screenshots/drag-drop.png)
