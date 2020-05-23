@@ -1,11 +1,11 @@
 {
-  "name": "nintendo-switch-screenshot-manager",
+  "name": "nintendo-switch-screenshot-importer",
   "author": "Geddy <g3ddylee@gmail.com>",
   "description": "Automatically import and organize screenshots from your Nintendo Switch SD card.",
   "version": "0.0.1",
   "repository": {
     "type": "git",
-    "url": "https://github.com/gedrick/nintendo-switch-screenshot-manager.git"
+    "url": "https://github.com/gedrick/nintendo-switch-screenshot-importer.git"
   },
   "scripts": {
     "serve": "vue-cli-service serve",

@@ -15,6 +15,7 @@ import {
   installVueDevtools
 } from "vue-cli-plugin-electron-builder/lib";
 const fsp = fs.promises;
+const path = require("path");
 const { COPYFILE_EXCL } = fs.constants;
 const isDevelopment = process.env.NODE_ENV !== "production";
 const testingFlags = {
@@ -93,7 +94,10 @@ const mainMenuTemplate = [
 
 function createMainWindow() {
   // Create the browser window.
-  mainWindow = new BrowserWindow(mainWindowTemplate);
+  mainWindow = new BrowserWindow({
+    ...mainWindowTemplate,
+    icon: path.join(__dirname, "build/512x512.png")
+  });
 
   Menu.buildFromTemplate(mainMenuTemplate);
 
