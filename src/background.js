@@ -290,10 +290,9 @@ async function importGameIds() {
 }
 
 ipcMain.on("copy-files", (event, copyInstructions) => {
-  mainWindow.setProgressBar(0);
   log(`Beginning to copy ${copyInstructions.length} files...`);
 
-  copyInstructions.forEach(async ({ file, destination }) => {
+  copyInstructions.forEach(({ file, destination }) => {
     const copyFile = async (src, dest) => {
       try {
         await fsp.copyFile(src, dest, COPYFILE_EXCL);
@@ -302,7 +301,7 @@ ipcMain.on("copy-files", (event, copyInstructions) => {
       }
     };
 
-    await copyFile(file, destination);
+    copyFile(file, destination);
     event.sender.send("copy-progress", file, destination);
     log(`Finished copying file ${file} to ${destination}.`);
   });

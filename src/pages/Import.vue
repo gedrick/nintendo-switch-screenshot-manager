@@ -16,7 +16,7 @@
         <div class="progress-bar-filler"></div>
         <span>Imported {{ copyProgress }} new files</span>
       </div>
-      <div class="resolve-warning">
+      <div class="resolve-warning" v-if="unknownGameIds.length">
         Some files were unable to be imported due to an unknown game ID. Click
         <b>Resolve</b> to fix them now.
       </div>
@@ -187,7 +187,8 @@ export default {
 
       if (!dryRun) {
         this.recentFiles = [];
-        ipcRenderer.send("copy-files", this.copyInstructions);
+
+        //REMOVE THIS LISTENER vv
         ipcRenderer.on("copy-progress", (event, src, destination) => {
           if (destination) {
             this.recentFiles.push(destination);
@@ -196,11 +197,16 @@ export default {
           this.copyProgress++;
         });
         ipcRenderer.once("files-copied", () => {
+          ipcRenderer.removeAllListeners("copy-progress");
           if (this.unknownGameIds.length) {
             this.$emit("changeSection", "resolve");
             // this.inResolveMode = true;
           }
         });
+        this.inProgress = true;
+        setTimeout(() => {
+          ipcRenderer.send("copy-files", this.copyInstructions);
+        }, 1000);
       } else {
         // Currently, not getting here, ever.
         if (this.unknownGameIds.length) {

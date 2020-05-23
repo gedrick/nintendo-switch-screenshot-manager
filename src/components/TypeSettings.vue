@@ -8,21 +8,21 @@
   >
     <div class="option">
       <div>
+        <input type="checkbox" v-model="settings.types.images" />
+      </div>
+      <div>
         <b>Backup Images:</b> This is a very lightweight operation, although it
         make a few minutes if you haven't transferred your screenshots in a
         while.
       </div>
-      <div>
-        <input type="checkbox" v-model="settings.types.images" />
-      </div>
     </div>
     <div class="option">
       <div>
-        <b>Backup Videos:</b> This can take a very long time and be a little
-        unstable on certain systems. Use with caution.
+        <input type="checkbox" v-model="settings.types.videos" />
       </div>
       <div>
-        <input type="checkbox" v-model="settings.types.videos" />
+        <b>Backup Videos:</b> This can take a long time and be slightly unstable
+        on older systems.
       </div>
     </div>
   </div>
