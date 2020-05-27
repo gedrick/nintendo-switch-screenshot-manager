@@ -1,36 +1,35 @@
 <template>
   <div>
-    <fieldset>
-      <legend>Output Folder and File Name</legend>
-      <div
-        class="card-panel"
-        :class="{ red: !settings.folderName, green: settings.folderName }"
-      >
-        <input
-          ref="folderName"
-          class="form-control"
-          id="folderName"
-          v-model="settings.folderName"
-          type="text"
-        />
-        <div class="col s2">
-          <button
-            @click="updateFolderName('folderName')"
-            class="btn btn-default btn-mini"
-            id="output-dir-btn"
-          >
-            <span>Save</span>
-          </button>
-        </div>
+    <div
+      class="card-panel"
+      :class="{ red: !settings.folderName, green: settings.folderName }"
+    >
+      <input
+        ref="folderName"
+        class="form-control"
+        id="folderName"
+        v-model="settings.folderName"
+        type="text"
+      />
+      <div class="col s2">
+        <button
+          @click="updateFolderName('folderName')"
+          class="btn btn-default btn-mini"
+          id="output-dir-btn"
+        >
+          <span>Save</span>
+        </button>
       </div>
+    </div>
+
+    <fieldset>
+      <legend>Available Variables</legend>
+
       <div class="row center">
         <b>Preview:</b><br />
         {{ folderNamePreview }}
       </div>
-    </fieldset>
 
-    <fieldset>
-      <legend>Variables</legend>
       <div class="card-panel">
         <div>
           <b>Date variables:</b><br />

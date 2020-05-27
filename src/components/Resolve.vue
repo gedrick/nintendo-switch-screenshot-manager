@@ -10,7 +10,7 @@
       <p>
         <b>
           Some screenshots could not be imported because they don't have a
-          matching ID! Sometimes this happens if the database is not up to date.
+          matching ID. Sometimes this happens if the database is not up to date.
         </b>
       </p>
       <p>
@@ -63,10 +63,12 @@
 <script>
 const fs = require("fs");
 import { mapState, mapMutations } from "vuex";
+import mixins from "../helpers/mixins";
 import { ipcRenderer } from "electron";
 
 export default {
   name: "Resolve",
+  mixins: [mixins],
   data() {
     return {
       newTitle: {},
@@ -74,20 +76,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["unknownGameIds"]),
-    uniqueGameIds() {
-      const foundUniques = [];
-      this.unknownGameIds.forEach(gameObj => {
-        if (
-          !foundUniques.find(
-            foundUnique => foundUnique.gameId === gameObj.gameId
-          )
-        ) {
-          foundUniques.push(gameObj);
-        }
-      });
-      return foundUniques;
-    }
+    ...mapState(["unknownGameIds"])
   },
   methods: {
     ...mapMutations(["addGameId", "removeUnknownGameId"]),

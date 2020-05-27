@@ -1,7 +1,14 @@
 <template>
   <div class="preview">
-    <h3 v-if="instructions.length">Matched files</h3>
-    <table class="table-striped">
+    <p v-if="!instructions.length">
+      There is nothing yet to preview, click <b>Preview Results</b> to see what
+      files your next import will have.
+    </p>
+    <p v-if="instructions.length">
+      The right column is the file/folder structure that will be created while
+      importing your file.
+    </p>
+    <table class="table-striped" v-if="instructions.length">
       <thead>
         <tr>
           <th>Source</th>

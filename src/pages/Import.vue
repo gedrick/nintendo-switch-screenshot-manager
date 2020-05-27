@@ -1,52 +1,51 @@
 <template>
-  <div class="section" id="import">
-    <div v-if="subsection === 'file-folder-locations'">
-      <SdCardDir />
-      <OutputDir />
-      <TypeSettings />
+  <div class="" id="import">
+    <div class="top">
+      <div v-if="subsection === 'settings'">
+        <SdCardDir />
+        <OutputDir />
+        <TypeSettings />
+        <FileName />
+      </div>
+
+      <Preview v-if="subsection === 'preview'" />
+
+      <Resolve v-if="subsection === 'resolve'" />
+
+      <Progress v-if="inProgress && copyProgress > 0">
+        <div class="progress-bar">
+          <div class="progress-bar-filler"></div>
+          <span>Imported {{ copyProgress }} new files</span>
+        </div>
+        <div class="resolve-warning" v-if="unknownGameIds.length">
+          Some files were unable to be imported due to an unknown game ID. Click
+          <b>Resolve</b> to fix them now.
+        </div>
+        <div class="controls">
+          <button
+            v-if="
+              copyProgress >= copyInstructions.length && unknownGameIds.length
+            "
+            @click="showResolveScreen"
+            class="btn btn-primary btn-large"
+          >
+            Resolve
+          </button>
+          <button @click="cancelImport" class="btn btn-secondary btn-large">
+            <span v-if="copyProgress >= copyInstructions.length">
+              Close
+            </span>
+            <span v-if="copyProgress < copyInstructions.length">
+              Cancel
+            </span>
+          </button>
+        </div>
+      </Progress>
     </div>
 
-    <div v-if="subsection === 'filename'">
-      <FileName />
-    </div>
-
-    <Preview v-if="subsection === 'preview'" />
-
-    <Resolve v-if="subsection === 'resolve'" />
-
-    <Progress v-if="inProgress && copyProgress > 0">
-      <div class="progress-bar">
-        <div class="progress-bar-filler"></div>
-        <span>Imported {{ copyProgress }} new files</span>
-      </div>
-      <div class="resolve-warning" v-if="unknownGameIds.length">
-        Some files were unable to be imported due to an unknown game ID. Click
-        <b>Resolve</b> to fix them now.
-      </div>
-      <div class="controls">
-        <button
-          v-if="
-            copyProgress >= copyInstructions.length && unknownGameIds.length
-          "
-          @click="showResolveScreen"
-          class="btn btn-primary btn-large"
-        >
-          Resolve
-        </button>
-        <button @click="cancelImport" class="btn btn-secondary btn-large">
-          <span v-if="copyProgress >= copyInstructions.length">
-            Close
-          </span>
-          <span v-if="copyProgress < copyInstructions.length">
-            Cancel
-          </span>
-        </button>
-      </div>
-    </Progress>
-
-    <div class="actions">
+    <div class="bottom">
       <button
-        class="btn btn-large btn-primary btn-action"
+        class="btn btn-primary btn-action"
         id="output-dir-btn"
         @click="beginImport(true)"
         :disabled="!readyToImport"
@@ -86,7 +85,7 @@ export default {
   props: {
     subsection: {
       type: String,
-      default: "file-folder-locations"
+      default: "settings"
     }
   },
   data() {
@@ -324,18 +323,26 @@ export default {
 #import {
   height: 100%;
   width: 100%;
-  padding: 25px;
   display: grid;
-  grid-template-rows: 90% 10%;
-  justify-content: space-between;
+  grid-template-rows: 85% 15%;
+  row-gap: 5px;
+  overflow: hidden;
+  justify-content: flex-start;
+}
+
+.top {
+  width: 100%;
+  overflow-y: auto;
+  padding: 10px;
+}
+
+.bottom {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .card-panel {
   padding: 5px 15px;
-}
-
-.actions {
-  display: flex;
-  justify-content: space-evenly;
 }
 </style>
