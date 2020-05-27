@@ -23,6 +23,14 @@
             </a>
             <a
               class="nav-group-item"
+              :class="{ active: subsection === 'preview' }"
+              @click="setActivePage('import', 'preview')"
+            >
+              <span class="icon icon-doc-text"></span>
+              Preview
+            </a>
+            <a
+              class="nav-group-item"
               :class="{ active: subsection === 'resolve' }"
               @click="setActivePage('import', 'resolve')"
             >

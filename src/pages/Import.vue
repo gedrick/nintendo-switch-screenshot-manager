@@ -5,9 +5,12 @@
       <OutputDir />
       <TypeSettings />
     </div>
+
     <div v-if="subsection === 'filename'">
       <FileName />
     </div>
+
+    <Preview v-if="subsection === 'preview'" />
 
     <Resolve v-if="subsection === 'resolve'" />
 
@@ -45,11 +48,11 @@
       <button
         class="btn btn-large btn-primary btn-action"
         id="output-dir-btn"
-        @click="beginImport(false)"
+        @click="beginImport(true)"
         :disabled="!readyToImport"
       >
         <span class="icon icon-camera"></span>
-        <span class="label">Start Importing</span>
+        <span class="label">Preview Results</span>
       </button>
     </div>
   </div>
@@ -63,6 +66,7 @@ import Progress from "../components/Progress.vue";
 import SdCardDir from "../components/SdCardDir.vue";
 import OutputDir from "../components/OutputDir.vue";
 import FileName from "../components/FileName.vue";
+import Preview from "../components/Preview.vue";
 import TypeSettings from "../components/TypeSettings.vue";
 import Resolve from "../components/Resolve.vue";
 import { ipcRenderer } from "electron";
@@ -70,19 +74,20 @@ import { mapState, mapMutations } from "vuex";
 
 export default {
   name: "Import",
-  props: {
-    subsection: {
-      type: String,
-      default: "file-folder-locations"
-    }
-  },
   components: {
     Progress,
     SdCardDir,
     OutputDir,
     FileName,
+    Preview,
     TypeSettings,
     Resolve
+  },
+  props: {
+    subsection: {
+      type: String,
+      default: "file-folder-locations"
+    }
   },
   data() {
     return {
@@ -114,12 +119,8 @@ export default {
     ipcRenderer.removeAllListeners("setOutputDir");
   },
   computed: {
-    ...mapState(["settings", "gameIds", "unknownGameIds"]),
-    calculateProgressWidth() {
-      const total = this.copyInstructions.length;
-      const complete = this.copyProgress;
-      return (complete / total) * 10;
-    },
+    ...mapState(["settings", "gameIds", "unknownGameIds", "instructions"]),
+
     readyToImport() {
       return (
         this.settings.outputDir &&
@@ -140,7 +141,9 @@ export default {
       "addGameId",
       "addUnknownGameId",
       "removeUnknownGameId",
-      "clearUnknownGameIds"
+      "clearUnknownGameIds",
+      "addInstruction",
+      "clearInstructions"
     ]),
     cancelImport() {
       this.inProgress = false;
@@ -159,7 +162,23 @@ export default {
       );
       this.setGameIds(JSON.parse(gameIds));
     },
+    getAllFiles(dirPath, arrayOfFiles) {
+      let files = fs.readdirSync(dirPath);
+      arrayOfFiles = arrayOfFiles || [];
+
+      files.forEach(file => {
+        if (fs.statSync(`${dirPath}/${file}`).isDirectory()) {
+          arrayOfFiles = this.getAllFiles(`${dirPath}/${file}`, arrayOfFiles);
+          arrayOfFiles = this.filterFiles(arrayOfFiles);
+        } else {
+          arrayOfFiles.push(`${dirPath}/${file}`);
+        }
+      });
+
+      return arrayOfFiles;
+    },
     beginImport(dryRun = true) {
+      this.clearInstructions();
       this.clearUnknownGameIds();
       this.importGameIds();
       this.copyProgress = 0;
@@ -167,91 +186,59 @@ export default {
       this.inProgress = true;
 
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
-      const yearFolders = fs.readdirSync(sdCardDir);
-      let allDirectories = [];
-      yearFolders
-        .filter(name => !name.startsWith("."))
-        .forEach(year => {
-          const yearFolder = `${sdCardDir}/${year}`;
-          const monthFolders = fs.readdirSync(yearFolder);
-          monthFolders
-            .filter(name => !name.startsWith("."))
-            .forEach(month => {
-              const monthFolder = `${sdCardDir}/${year}/${month}`;
-              const dayFolders = fs.readdirSync(monthFolder);
-              dayFolders
-                .filter(name => !name.startsWith("."))
-                .forEach(day => {
-                  allDirectories.push(`${sdCardDir}/${year}/${month}/${day}`);
-                });
-            });
-        });
+      const allFiles = this.getAllFiles(sdCardDir);
 
-      this.processDirectories(allDirectories);
-
-      if (!dryRun) {
-        this.recentFiles = [];
-
-        //REMOVE THIS LISTENER vv
-        ipcRenderer.on("copy-progress", (event, src, destination) => {
-          if (destination) {
-            this.recentFiles.push(destination);
-          }
-
-          this.copyProgress++;
-        });
-        ipcRenderer.once("files-copied", () => {
-          ipcRenderer.removeAllListeners("copy-progress");
-          if (this.unknownGameIds.length) {
-            this.$emit("changeSection", "resolve");
-            // this.inResolveMode = true;
-          }
-        });
-        this.inProgress = true;
-        setTimeout(() => {
-          ipcRenderer.send("copy-files", this.copyInstructions);
-        }, 1000);
-      } else {
-        // Currently, not getting here, ever.
-        if (this.unknownGameIds.length) {
-          this.$emit("changeSection", "resolve");
-          this.inResolveMode = true;
-        }
-      }
-    },
-    processDirectories(directoryArray) {
-      let filteredFiles = [];
-      directoryArray.forEach(directory => {
-        const screenshotFiles = fs.readdirSync(directory);
-        filteredFiles = filteredFiles.concat(
-          this.filterFiles(screenshotFiles).map(filename => {
-            return `${directory}/${filename}`;
-          })
-        );
-      });
-
-      this.totalFiles = filteredFiles.length;
-      this.generateInstructions(filteredFiles);
-    },
-    generateInstructions(filelist) {
-      filelist.forEach(screenshotFullPath => {
-        const filename = screenshotFullPath.substring(
+      allFiles.forEach(screenshotFullPath => {
+        const fileName = screenshotFullPath.substring(
           screenshotFullPath.lastIndexOf("/") + 1
         );
 
-        const gameName = this.getGameTitle(filename);
+        const gameName = this.getGameTitle(fileName);
         if (!gameName) {
-          const gameId = this.getGameIdFromFileName(filename);
-          ipcRenderer.send("addGameId", gameId, "");
+          const gameId = this.getGameIdFromFileName(fileName);
           this.addUnknownGameId({ gameId, screenshotPath: screenshotFullPath });
         } else {
-          this.backupFile(screenshotFullPath, gameName);
+          this.performLookup(screenshotFullPath, gameName);
         }
-
-        this.doneFiles++;
       });
+
+      if (this.instructions.length) {
+        this.$emit("changeSection", "preview");
+      }
+
+      return;
+
+      // if (!dryRun) {
+      //   this.recentFiles = [];
+
+      //   //REMOVE THIS LISTENER vv
+      //   ipcRenderer.on("copy-progress", (event, src, destination) => {
+      //     if (destination) {
+      //       this.recentFiles.push(destination);
+      //     }
+
+      //     this.copyProgress++;
+      //   });
+      //   ipcRenderer.once("files-copied", () => {
+      //     ipcRenderer.removeAllListeners("copy-progress");
+      //     if (this.unknownGameIds.length) {
+      //       this.$emit("changeSection", "resolve");
+      //       // this.inResolveMode = true;
+      //     }
+      //   });
+      //   this.inProgress = true;
+      //   setTimeout(() => {
+      //     ipcRenderer.send("copy-files", this.copyInstructions);
+      //   }, 1000);
+      // } else {
+      //   // Currently, not getting here, ever.
+      //   if (this.unknownGameIds.length) {
+      //     this.$emit("changeSection", "resolve");
+      //     this.inResolveMode = true;
+      //   }
+      // }
     },
-    backupFile(filePath, gameName) {
+    performLookup(filePath, gameName) {
       const sourceFileName = filePath.substr(filePath.lastIndexOf("/") + 1);
       const destinationFolder = this.settings.folderName;
 
@@ -289,16 +276,16 @@ export default {
         destinationPath.lastIndexOf("/")
       );
 
+      // if (!fs.existsSync(destinationPath)) {
+      //   fs.mkdirSync(destinationDirectory, { recursive: true });
+      //   if (fs.existsSync(destinationPath)) {
+      //     this.skippedFiles++;
+      //   } else {
       if (!fs.existsSync(destinationPath)) {
-        fs.mkdirSync(destinationDirectory, { recursive: true });
-        if (fs.existsSync(destinationPath)) {
-          this.skippedFiles++;
-        } else {
-          this.copyInstructions.push({
-            file: filePath,
-            destination: destinationPath
-          });
-        }
+        this.addInstruction({
+          file: filePath,
+          destination: destinationPath
+        });
       }
     },
     getGameIdFromFileName(fileName) {
@@ -315,9 +302,10 @@ export default {
         fileTypes.push("mp4");
       }
 
-      const files = filelist.filter(filename => {
-        const validType = fileTypes.includes(filename.split(".")[1]);
-        const validName = filename.match(/^\d+-[A-Z\d]+\.(jpg|mp4)$/);
+      const files = filelist.filter(filePath => {
+        const fileName = filePath.substring(filePath.lastIndexOf("/") + 1);
+        const validType = fileTypes.includes(fileName.split(".")[1]);
+        const validName = fileName.match(/^\d+-[A-Z\d]+\.(jpg|mp4)$/);
         return validType && validName;
       });
       return files;
@@ -335,9 +323,10 @@ export default {
 <style lang="scss">
 #import {
   height: 100%;
+  width: 100%;
   padding: 25px;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-rows: 90% 10%;
   justify-content: space-between;
 }
 

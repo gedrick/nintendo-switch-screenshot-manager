@@ -244,7 +244,7 @@ async function checkForUpdates() {
   const { data } = res;
   const currentVersion = require("../package.json").version;
   if (
-    data.latest !== currentVersion ||
+    data.latest > currentVersion ||
     (process.env.NODE_ENV !== "production" && testingFlags.updateAvailable)
   ) {
     await log(`Update available: ${data.latest}, from ${currentVersion}.`);

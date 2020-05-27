@@ -16,9 +16,18 @@ export default new Vuex.Store({
       }
     },
     gameIds: {},
-    unknownGameIds: []
+    unknownGameIds: [],
+    instructions: []
   },
   mutations: {
+    addInstruction(state, instructions) {
+      const currentInstructions = state.instructions;
+      currentInstructions.push(instructions);
+      Vue.set(state, "instructions", currentInstructions);
+    },
+    clearInstructions(state) {
+      Vue.set(state, "instructions", []);
+    },
     setSettings(state, newSettings) {
       const currentSettings = state.settings;
       Vue.set(state, "settings", {
