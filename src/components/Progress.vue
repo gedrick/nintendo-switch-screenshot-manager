@@ -7,6 +7,7 @@
 </template>
 
 <style lang="scss" scoped>
+@import "../styles/variables.scss";
 .container {
   width: 100vw;
   height: 100vh;
@@ -50,7 +51,7 @@
     top: 0;
     left: 0;
     height: 100%;
-    background-color: rgba(green, 0.5);
+    background-color: rgba($zelda-green, 0.3);
     width: 100%;
   }
   span {

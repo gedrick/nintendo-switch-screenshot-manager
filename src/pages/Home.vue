@@ -112,10 +112,35 @@ export default {
 </script>
 
 <style lang="scss">
+@import "../styles/variables";
+
 body {
   background-color: #e3f2fd;
   font-family: BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu,
     Cantarell, "Helvetica Neue", sans-serif;
+}
+
+.sidebar {
+  background-color: #335368;
+  nav {
+    .nav-group-title {
+      color: #fff;
+    }
+    .nav-group-item {
+      color: #fff;
+      &.active {
+        background-color: #266dd3;
+      }
+      span {
+        color: #fff;
+      }
+    }
+  }
+}
+
+.pane {
+  background-color: $gray;
+  border-left: none;
 }
 
 .form-control,
@@ -150,7 +175,7 @@ body {
   }
 
   &.green {
-    background-color: rgba(green, 0.3);
+    background-color: rgba($zelda-green, 0.3);
   }
 }
 </style>
