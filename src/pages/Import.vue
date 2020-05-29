@@ -79,11 +79,15 @@ import FileName from "../components/FileName.vue";
 import Preview from "../components/Preview.vue";
 import TypeSettings from "../components/TypeSettings.vue";
 import Resolve from "../components/Resolve.vue";
+import mixins from "../helpers/mixins";
 import { ipcRenderer } from "electron";
 import { mapState, mapMutations } from "vuex";
 
+const dialog = Electron.dialog;
+
 export default {
   name: "Import",
+  mixins: [mixins],
   components: {
     Progress,
     SdCardDir,
@@ -187,7 +191,7 @@ export default {
 
       return arrayOfFiles;
     },
-    beginImport(dryRun = true) {
+    async beginImport(dryRun = true) {
       this.clearInstructions();
       this.clearUnknownGameIds();
       this.importGameIds();
@@ -212,41 +216,59 @@ export default {
         }
       });
 
-      if (this.instructions.length) {
-        this.$emit("changeSection", "preview");
+      if (dryRun && this.instructions.length) {
+        const dialogResult = await dialog.showMessageBox({
+          type: "info",
+          buttons: ["Resolve", "Preview"],
+          message: `${this.instructions.length} new files were found, with ${this.uniqueGameIds.length} game IDs unresolved. What would you like to do?`
+        });
+        console.log(dialogResult);
+
+        if (dialogResult.response === 0) {
+          this.$emit("changeSection", "resolve");
+        } else {
+          this.$emit("changeSection", "preview");
+        }
+
+        return;
       }
 
-      return;
+      if (!this.instructions.length) {
+        dialog.showMessageBox({
+          type: "error",
+          buttons: ["OK"],
+          cancelId: 0,
+          message: "No files were found that can be imported."
+        });
+        return;
+      }
 
-      // if (!dryRun) {
-      //   this.recentFiles = [];
+      if (!dryRun) {
+        this.recentFiles = [];
 
-      //   //REMOVE THIS LISTENER vv
-      //   ipcRenderer.on("copy-progress", (event, src, destination) => {
-      //     if (destination) {
-      //       this.recentFiles.push(destination);
-      //     }
+        //REMOVE THIS LISTENER vv
+        ipcRenderer.on("copy-progress", (event, src, destination) => {
+          // if (destination) {
+          //   this.recentFiles.push(destination);
+          // }
 
-      //     this.copyProgress++;
-      //   });
-      //   ipcRenderer.once("files-copied", () => {
-      //     ipcRenderer.removeAllListeners("copy-progress");
-      //     if (this.unknownGameIds.length) {
-      //       this.$emit("changeSection", "resolve");
-      //       // this.inResolveMode = true;
-      //     }
-      //   });
-      //   this.inProgress = true;
-      //   setTimeout(() => {
-      //     ipcRenderer.send("copy-files", this.copyInstructions);
-      //   }, 1000);
-      // } else {
-      //   // Currently, not getting here, ever.
-      //   if (this.unknownGameIds.length) {
-      //     this.$emit("changeSection", "resolve");
-      //     this.inResolveMode = true;
-      //   }
-      // }
+          console.log("file copied! ", destination);
+        });
+        // ipcRenderer.once("files-copied", () => {
+        //   ipcRenderer.removeAllListeners("copy-progress");
+        //   if (this.unknownGameIds.length) {
+        //     this.$emit("changeSection", "resolve");
+        //   }
+        // });
+
+        ipcRenderer.once("files-copied", () => {
+          ipcRenderer.removeAllListeners("copy-progress");
+          console.log("Files copied!");
+        });
+
+        this.inProgress = true;
+        ipcRenderer.send("copy-files", this.instructions);
+      }
     },
     performLookup(filePath, gameName) {
       const sourceFileName = filePath.substr(filePath.lastIndexOf("/") + 1);

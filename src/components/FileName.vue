@@ -81,4 +81,8 @@ export default {
 .input-block {
   margin-bottom: 0;
 }
+
+fieldset {
+  font-size: 18px;
+}
 </style>

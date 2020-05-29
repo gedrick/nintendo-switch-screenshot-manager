@@ -296,16 +296,20 @@ async function importGameIds() {
 ipcMain.on("copy-files", (event, copyInstructions) => {
   log(`Beginning to copy ${copyInstructions.length} files...`);
 
-  copyInstructions.forEach(({ file, destination }) => {
-    const copyFile = async (src, dest) => {
-      try {
-        await fsp.copyFile(src, dest, COPYFILE_EXCL);
-      } catch (e) {
-        log(`File already exists: ${destination}`);
-      }
-    };
+  const copyFile = async (src, dest) => {
+    try {
+      await fsp.mkdir(dest.substr(0, dest.lastIndexOf("/")), {
+        recursive: true
+      });
+      await fsp.copyFile(src, dest, COPYFILE_EXCL);
+    } catch (e) {
+      console.log(e);
+      log(`File already exists: ${dest}`);
+    }
+  };
 
-    copyFile(file, destination);
+  copyInstructions.forEach(async ({ file, destination }) => {
+    await copyFile(file, destination);
     event.sender.send("copy-progress", file, destination);
     log(`Finished copying file ${file} to ${destination}.`);
   });
