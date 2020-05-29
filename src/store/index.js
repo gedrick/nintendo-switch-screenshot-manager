@@ -25,6 +25,11 @@ export default new Vuex.Store({
       currentInstructions.push(instructions);
       Vue.set(state, "instructions", currentInstructions);
     },
+    removeInstruction(state, instructionIndex) {
+      const instructions = state.instructions;
+      instructions.splice(instructionIndex, 1);
+      Vue.set(state, "instructions", instructions);
+    },
     clearInstructions(state) {
       Vue.set(state, "instructions", []);
     },

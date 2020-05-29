@@ -8,7 +8,10 @@
         <FileName />
       </div>
 
-      <Preview v-if="subsection === 'preview'" />
+      <Preview
+        v-if="subsection === 'preview'"
+        @file-name-changed="beginImport(true)"
+      />
 
       <Resolve v-if="subsection === 'resolve'" />
 
@@ -50,8 +53,16 @@
         @click="beginImport(true)"
         :disabled="!readyToImport"
       >
-        <span class="icon icon-camera"></span>
         <span class="label">Preview Results</span>
+      </button>
+      <button
+        class="btn btn-primary btn-action"
+        id="output-dir-btn"
+        @click="beginImport(false)"
+        :disabled="!readyToImport || !instructions.length"
+      >
+        <span class="icon icon-camera"></span>
+        <span class="label">Begin Import</span>
       </button>
     </div>
   </div>
@@ -338,7 +349,7 @@ export default {
 
 .bottom {
   display: flex;
-  justify-content: center;
+  justify-content: space-around;
   align-items: center;
 }
 

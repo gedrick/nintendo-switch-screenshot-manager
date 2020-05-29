@@ -30,28 +30,19 @@
         {{ folderNamePreview }}
       </div>
 
-      <div class="card-panel">
-        <div>
-          <b>Date variables:</b><br />
-          %year%&nbsp;&nbsp;%month%<br />
-          %day%&nbsp;&nbsp;%time%
-        </div>
-        <div>
-          <b>Other variables:</b><br />
-          %titlefull% %titleshort%<br />
-          %type% %number%
-        </div>
-      </div>
+      <Variables />
     </fieldset>
   </div>
 </template>
 
 <script>
+import Variables from "../components/Variables";
 import { mapState } from "vuex";
 import { ipcRenderer } from "electron";
 
 export default {
   name: "FileName",
+  components: { Variables },
   mounted() {
     this.$refs.folderName.focus();
     this.$refs.folderName.blur();

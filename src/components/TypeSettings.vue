@@ -48,8 +48,6 @@ export default {
 .option {
   display: flex;
   flex-grow: 1 0;
-  // flex-direction: row;
-  // justify-content: space-between;
-  // align-content: center;
+  align-self: flex-start;
 }
 </style>
