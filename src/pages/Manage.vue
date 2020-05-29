@@ -6,7 +6,8 @@
         Dragging file - you can drop in your file system or in a web browser.
       </p>
     </div>
-    <div class="controls">
+    <p v-if="!directoryContents.length">You haven't imported any files.</p>
+    <div v-if="directoryContents.length" class="controls">
       <div>
         <button class="btn btn-default" @click="home()">
           Home
@@ -45,7 +46,7 @@
         </button>
       </div>
     </div>
-    <div class="directories" :style="cssVars">
+    <div v-if="directoryContents.length" class="directories" :style="cssVars">
       <div v-for="directory in directoryContents" :key="directory">
         <div
           class="folder"

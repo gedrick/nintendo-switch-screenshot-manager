@@ -7,19 +7,19 @@
             <h5 class="nav-group-title">Import</h5>
             <a
               class="nav-group-item"
-              :class="{ active: subsection === 'file-folder-locations' }"
-              @click="setActivePage('import', 'file-folder-locations')"
+              :class="{ active: subsection === 'settings' }"
+              @click="setActivePage('import', 'settings')"
             >
               <span class="icon icon-folder"></span>
-              File/Folder Locations
+              Settings
             </a>
             <a
               class="nav-group-item"
-              :class="{ active: subsection === 'filename' }"
-              @click="setActivePage('import', 'filename')"
+              :class="{ active: subsection === 'preview' }"
+              @click="setActivePage('import', 'preview')"
             >
-              <span class="icon icon-floppy"></span>
-              File Naming
+              <span class="icon icon-doc-text"></span>
+              Preview
             </a>
             <a
               class="nav-group-item"
@@ -28,6 +28,9 @@
             >
               <span class="icon icon-docs"></span>
               Resolve
+              <span v-if="uniqueGameIds.length">
+                ({{ uniqueGameIds.length }})
+              </span>
             </a>
             <h5 class="nav-group-title">Screenshots</h5>
             <a
@@ -80,9 +83,12 @@
 <script>
 import Import from "./Import";
 import Manage from "./Manage";
+import { mapState } from "vuex";
+import mixins from "../helpers/mixins";
 
 export default {
   name: "Home",
+  mixins: [mixins],
   components: {
     Import,
     Manage
@@ -90,8 +96,11 @@ export default {
   data() {
     return {
       section: "import",
-      subsection: "file-folder-locations"
+      subsection: "settings"
     };
+  },
+  computed: {
+    ...mapState(["unknownGameIds"])
   },
   methods: {
     setActivePage(section, subsection) {
@@ -103,44 +112,36 @@ export default {
 </script>
 
 <style lang="scss">
+@import "../styles/variables";
+
 body {
   background-color: #e3f2fd;
   font-family: BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen-Sans, Ubuntu,
     Cantarell, "Helvetica Neue", sans-serif;
 }
 
-// #home {
-//   padding: 10px;
-//   font-family: Avenir, Helvetica, Arial, sans-serif;
-//   -webkit-font-smoothing: antialiased;
-//   -moz-osx-font-smoothing: grayscale;
-//   text-align: center;
-//   color: #2c3e50;
-//   margin: 20px 0;
-//   height: 100vh;
-// }
+.sidebar {
+  background-color: #335368;
+  nav {
+    .nav-group-title {
+      color: #fff;
+    }
+    .nav-group-item {
+      color: #fff;
+      &.active {
+        background-color: #266dd3;
+      }
+      span {
+        color: #fff;
+      }
+    }
+  }
+}
 
-// .header {
-//   display: flex;
-//   justify-content: flex-start;
-// }
-
-// .navigation {
-//   width: 100%;
-//   height: 100%;
-
-//   display: flex;
-//   flex-direction: column;
-//   align-items: center;
-//   justify-content: center;
-
-//   button {
-//     width: 50%;
-//   }
-//   & button:not(.last-of-type) {
-//     margin-bottom: 20px;
-//   }
-// }
+.pane {
+  background-color: $gray;
+  border-left: none;
+}
 
 .form-control,
 .btn,
@@ -174,7 +175,7 @@ body {
   }
 
   &.green {
-    background-color: rgba(green, 0.3);
+    background-color: rgba($zelda-green, 0.3);
   }
 }
 </style>
