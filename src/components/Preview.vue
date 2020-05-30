@@ -4,11 +4,8 @@
       There is nothing yet to preview, click <b>Preview Results</b> to see what
       files your next import will have.
     </p>
-    <p v-if="instructions.length">
-      The right column is the file/folder structure that will be created while
-      importing your file.
-    </p>
     <div v-if="instructions.length">
+      <p><b>File Name</b></p>
       <input
         ref="folderName"
         class="form-control"

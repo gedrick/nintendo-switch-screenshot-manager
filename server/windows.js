@@ -1,6 +1,6 @@
 const mainWindowTemplate = {
   width: 700,
-  height: 600,
+  height: 400,
   webPreferences: {
     nodeIntegration: true,
     enableRemoteModule: true,

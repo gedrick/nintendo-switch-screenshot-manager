@@ -5,7 +5,7 @@
         <SdCardDir />
         <OutputDir />
         <TypeSettings />
-        <FileName />
+        <!-- <FileName /> -->
       </div>
 
       <Preview
@@ -75,15 +75,13 @@ const Electron = window.require("electron").remote;
 // import Progress from "../components/Progress.vue";
 import SdCardDir from "../components/SdCardDir.vue";
 import OutputDir from "../components/OutputDir.vue";
-import FileName from "../components/FileName.vue";
+// import FileName from "../components/FileName.vue";
 import Preview from "../components/Preview.vue";
 import TypeSettings from "../components/TypeSettings.vue";
 import Resolve from "../components/Resolve.vue";
 import mixins from "../helpers/mixins";
 import { ipcRenderer } from "electron";
 import { mapState, mapMutations } from "vuex";
-
-const dialog = Electron.dialog;
 
 export default {
   name: "Import",
@@ -92,7 +90,7 @@ export default {
     // Progress,
     SdCardDir,
     OutputDir,
-    FileName,
+    // FileName,
     Preview,
     TypeSettings,
     Resolve
@@ -237,12 +235,11 @@ export default {
       }
 
       if (!this.instructions.length) {
-        dialog.showMessageBox({
-          type: "error",
-          buttons: ["OK"],
-          cancelId: 0,
-          message: "No files were found that can be imported."
-        });
+        ipcRenderer.send(
+          "show-message",
+          "No files were found that can be imported.",
+          "error"
+        );
         return;
       }
 
@@ -353,8 +350,12 @@ export default {
 
 .bottom {
   display: flex;
-  justify-content: space-around;
+  justify-content: center;
   align-items: center;
+
+  button {
+    margin-right: 10px;
+  }
 }
 
 .card-panel {

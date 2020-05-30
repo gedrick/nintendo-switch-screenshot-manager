@@ -72,7 +72,7 @@ const mainMenuTemplate = [
         click: async () => {
           const updateAvailable = await checkForUpdates();
           if (!updateAvailable) {
-            showInfoMessage("You are already using the latest version.");
+            showDialogBox("You are already using the latest version.");
           } else {
             if (await checkToUpdate()) {
               createUpdateWindow();
@@ -218,14 +218,18 @@ function addGameId(gameId, gameName) {
   }
 }
 
-function showInfoMessage(message) {
-  dialog.showMessageBoxSync(mainWindow, {
-    type: "info",
+function showDialogBox(message, type = "info") {
+  dialog.showMessageBox(mainWindow, {
     buttons: ["OK"],
     cancelId: 0,
+    type,
     message
   });
 }
+
+ipcMain.on("show-message", (event, message, type) => {
+  showDialogBox(message, type);
+});
 
 ipcMain.on(
   "ask-to-import",
@@ -330,12 +334,7 @@ ipcMain.on("copy-files", async (event, instructions) => {
   });
 
   log(`Finished copying files`);
-  await dialog.showMessageBox(mainWindow, {
-    title: "Files copied",
-    type: "info",
-    buttons: ["OK"],
-    message: `${instructions.length} have been successfully copied.`
-  });
+  showDialogBox(`${instructions.length} have been successfully copied.`);
   event.sender.send("files-copied");
 });
 
