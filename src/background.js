@@ -304,7 +304,9 @@ ipcMain.on("copy-files", (event, copyInstructions) => {
       await fsp.copyFile(src, dest, COPYFILE_EXCL);
     } catch (e) {
       console.log(e);
-      log(`File already exists: ${dest}`);
+      log(
+        `File already exists or there was a problem creating the directory: ${dest}`
+      );
     }
   };
 

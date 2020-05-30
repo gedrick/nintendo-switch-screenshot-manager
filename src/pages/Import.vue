@@ -219,15 +219,17 @@ export default {
       if (dryRun && this.instructions.length) {
         const dialogResult = await dialog.showMessageBox({
           type: "info",
-          buttons: ["Resolve", "Preview"],
+          buttons: ["Preview Files", "Resolve Missing IDs", "Import Now"],
           message: `${this.instructions.length} new files were found, with ${this.uniqueGameIds.length} game IDs unresolved. What would you like to do?`
         });
-        console.log(dialogResult);
+        console.log(dialogResult.response);
 
         if (dialogResult.response === 0) {
-          this.$emit("changeSection", "resolve");
-        } else {
           this.$emit("changeSection", "preview");
+        } else if (dialogResult.response === 2) {
+          this.beginImport(false);
+        } else {
+          this.$emit("changeSection", "resolve");
         }
 
         return;
@@ -303,16 +305,6 @@ export default {
       }
 
       const destinationPath = this.settings.outputDir + destinationFile;
-      const destinationDirectory = destinationPath.substr(
-        0,
-        destinationPath.lastIndexOf("/")
-      );
-
-      // if (!fs.existsSync(destinationPath)) {
-      //   fs.mkdirSync(destinationDirectory, { recursive: true });
-      //   if (fs.existsSync(destinationPath)) {
-      //     this.skippedFiles++;
-      //   } else {
       if (!fs.existsSync(destinationPath)) {
         this.addInstruction({
           file: filePath,
