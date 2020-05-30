@@ -123,7 +123,8 @@ function createMainWindow() {
 function createUpdateWindow() {
   childWindow = new BrowserWindow({
     ...updateWindowTemplate,
-    parent: mainWindow
+    parent: mainWindow,
+    alwaysOnTop: true
   });
   childWindow.loadURL(paths.baseUrl);
   childWindow.once("ready-to-show", () => {
@@ -225,6 +226,19 @@ function showInfoMessage(message) {
     message
   });
 }
+
+ipcMain.on(
+  "ask-to-import",
+  async (event, { instructions = [], unknownIds = [] }) => {
+    const dialogResult = await dialog.showMessageBox(mainWindow, {
+      type: "info",
+      buttons: ["Preview Files", "Resolve Missing IDs", "Import Now"],
+      message: `${instructions.length} new files were found, with ${unknownIds.length} game IDs unresolved. What would you like to do?`,
+      noLink: true
+    });
+    event.sender.send("ask-to-import-response", dialogResult.response);
+  }
+);
 
 async function checkForUpdates() {
   let res;

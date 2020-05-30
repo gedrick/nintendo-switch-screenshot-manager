@@ -217,22 +217,23 @@ export default {
       });
 
       if (dryRun && this.instructions.length) {
-        const dialogResult = await dialog.showMessageBox({
-          type: "info",
-          buttons: ["Preview Files", "Resolve Missing IDs", "Import Now"],
-          message: `${this.instructions.length} new files were found, with ${this.uniqueGameIds.length} game IDs unresolved. What would you like to do?`
+        ipcRenderer.send("ask-to-import", {
+          instructions: this.instructions,
+          unknownIds: this.uniqueGameIds
         });
-        console.log(dialogResult.response);
 
-        if (dialogResult.response === 0) {
-          this.$emit("changeSection", "preview");
-        } else if (dialogResult.response === 2) {
-          this.beginImport(false);
-        } else {
-          this.$emit("changeSection", "resolve");
-        }
+        ipcRenderer.once("ask-to-import-response", (event, dialogResult) => {
+          console.log(dialogResult);
+          if (dialogResult === 0) {
+            this.$emit("changeSection", "preview");
+          } else if (dialogResult === 2) {
+            this.beginImport(false);
+          } else {
+            this.$emit("changeSection", "resolve");
+          }
 
-        return;
+          return;
+        });
       }
 
       if (!this.instructions.length) {
