@@ -1,5 +1,8 @@
 # Nintendo Switch Screenshot Manager
 
+## Download Latest Version
+[Click here](https://drive.google.com/open?id=1SWUA5rXURrAJTbsULM3d1MOZwd1jlXn1)
+
 ## Automatically import your Switch screenshots and videos
 
 Are you sick of manually copying and renaming files from your Switch's SD card? As someone who writes about video games quite often, I need to offload screenshots every week or so. The problem is, the Nintendo Switch organizes screenshots and screen recordings into specific day, month, and year folders, as well as using a time, date, and unique ID for the file names.
