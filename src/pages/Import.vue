@@ -15,7 +15,7 @@
 
       <Resolve v-if="subsection === 'resolve'" />
 
-      <Progress v-if="inProgress && copyProgress > 0">
+      <!-- <Progress v-if="inProgress && instructions.length > 0">
         <div class="progress-bar">
           <div class="progress-bar-filler"></div>
           <span>Imported {{ copyProgress }} new files</span>
@@ -43,7 +43,7 @@
             </span>
           </button>
         </div>
-      </Progress>
+      </Progress> -->
     </div>
 
     <div class="bottom">
@@ -72,7 +72,7 @@
 const fs = require("fs");
 const Electron = window.require("electron").remote;
 
-import Progress from "../components/Progress.vue";
+// import Progress from "../components/Progress.vue";
 import SdCardDir from "../components/SdCardDir.vue";
 import OutputDir from "../components/OutputDir.vue";
 import FileName from "../components/FileName.vue";
@@ -89,7 +89,7 @@ export default {
   name: "Import",
   mixins: [mixins],
   components: {
-    Progress,
+    // Progress,
     SdCardDir,
     OutputDir,
     FileName,
@@ -157,7 +157,9 @@ export default {
       "removeUnknownGameId",
       "clearUnknownGameIds",
       "addInstruction",
-      "clearInstructions"
+      "clearInstructions",
+      "addRecentImport",
+      "clearRecentImports"
     ]),
     cancelImport() {
       this.inProgress = false;
@@ -197,7 +199,6 @@ export default {
       this.importGameIds();
       this.copyProgress = 0;
       this.copyInstructions = [];
-      this.inProgress = true;
 
       const sdCardDir = `${this.settings.sdCardDir}/Nintendo/Album`;
       const allFiles = this.getAllFiles(sdCardDir);
@@ -223,7 +224,6 @@ export default {
         });
 
         ipcRenderer.once("ask-to-import-response", (event, dialogResult) => {
-          console.log(dialogResult);
           if (dialogResult === 0) {
             this.$emit("changeSection", "preview");
           } else if (dialogResult === 2) {
@@ -247,31 +247,25 @@ export default {
       }
 
       if (!dryRun) {
-        this.recentFiles = [];
-
-        //REMOVE THIS LISTENER vv
-        ipcRenderer.on("copy-progress", (event, src, destination) => {
-          // if (destination) {
-          //   this.recentFiles.push(destination);
-          // }
-
-          console.log("file copied! ", destination);
-        });
-        // ipcRenderer.once("files-copied", () => {
-        //   ipcRenderer.removeAllListeners("copy-progress");
-        //   if (this.unknownGameIds.length) {
-        //     this.$emit("changeSection", "resolve");
-        //   }
-        // });
-
-        ipcRenderer.once("files-copied", () => {
-          ipcRenderer.removeAllListeners("copy-progress");
-          console.log("Files copied!");
-        });
-
-        this.inProgress = true;
-        ipcRenderer.send("copy-files", this.instructions);
+        this.doImport();
       }
+    },
+    doImport() {
+      this.clearRecentImports();
+      this.recentFiles = [];
+      this.inProgress = true;
+
+      ipcRenderer.on("copy-progress", (event, destination) => {
+        this.addRecentImport(destination);
+        console.log(`File copied: ${destination}`);
+      });
+
+      ipcRenderer.once("files-copied", () => {
+        ipcRenderer.removeAllListeners("copy-progress");
+        this.inProgress = false;
+      });
+
+      ipcRenderer.send("copy-files", this.instructions);
     },
     performLookup(filePath, gameName) {
       const sourceFileName = filePath.substr(filePath.lastIndexOf("/") + 1);

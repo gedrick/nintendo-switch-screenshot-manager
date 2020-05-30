@@ -17,7 +17,8 @@ export default new Vuex.Store({
     },
     gameIds: {},
     unknownGameIds: [],
-    instructions: []
+    instructions: [],
+    recentImports: []
   },
   mutations: {
     addInstruction(state, instructions) {
@@ -32,6 +33,14 @@ export default new Vuex.Store({
     },
     clearInstructions(state) {
       Vue.set(state, "instructions", []);
+    },
+    addRecentImport(state, newImport) {
+      const recentImports = state.recentImports;
+      recentImports.push(newImport);
+      Vue.set(state, "recentImports", recentImports);
+    },
+    clearRecentImports(state) {
+      Vue.set(state, "recentImports", []);
     },
     setSettings(state, newSettings) {
       const currentSettings = state.settings;
