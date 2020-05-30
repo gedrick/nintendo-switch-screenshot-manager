@@ -255,14 +255,9 @@ export default {
       this.recentFiles = [];
       this.inProgress = true;
 
-      ipcRenderer.on("copy-progress", (event, destination) => {
-        this.addRecentImport(destination);
-        console.log(`File copied: ${destination}`);
-      });
-
       ipcRenderer.once("files-copied", () => {
-        ipcRenderer.removeAllListeners("copy-progress");
         this.inProgress = false;
+        this.clearInstructions();
       });
 
       ipcRenderer.send("copy-files", this.instructions);

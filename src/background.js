@@ -307,8 +307,8 @@ async function importGameIds() {
   }
 }
 
-ipcMain.on("copy-files", async (event, copyInstructions) => {
-  log(`Beginning to copy ${copyInstructions.length} files...`);
+ipcMain.on("copy-files", async (event, instructions) => {
+  log(`Beginning to copy ${instructions.length} files...`);
 
   const copyFile = async (src, dest) => {
     try {
@@ -324,10 +324,9 @@ ipcMain.on("copy-files", async (event, copyInstructions) => {
     }
   };
 
-  copyInstructions.forEach(async ({ file, destination }) => {
+  instructions.forEach(async ({ file, destination }) => {
     await copyFile(file, destination);
-    event.sender.send("copy-progress", destination);
-    log(`Finished copying file ${file} to ${destination}.`);
+    log(`Copied file ${file} to ${destination}.`);
   });
 
   log(`Finished copying files`);
@@ -335,7 +334,7 @@ ipcMain.on("copy-files", async (event, copyInstructions) => {
     title: "Files copied",
     type: "info",
     buttons: ["OK"],
-    message: `${copyInstructions.length} have been successfully copied.`
+    message: `${instructions.length} have been successfully copied.`
   });
   event.sender.send("files-copied");
 });
