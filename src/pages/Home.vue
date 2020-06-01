@@ -56,15 +56,16 @@
             >
               <span class="icon icon-video"></span>
               Videos
-            </a>
+            </a>-->
             <a
               class="nav-group-item"
               :class="{ active: subsection === 'recent' }"
               @click="setActivePage('manage', 'recent')"
+              v-if="recentImports.length"
             >
               <span class="icon icon-calendar"></span>
-              Recent
-            </a> -->
+              Last Import
+            </a>
           </nav>
         </div>
         <div class="pane">
@@ -100,7 +101,7 @@ export default {
     };
   },
   computed: {
-    ...mapState(["unknownGameIds"])
+    ...mapState(["unknownGameIds", "recentImports"])
   },
   methods: {
     setActivePage(section, subsection) {

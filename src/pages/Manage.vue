@@ -6,94 +6,171 @@
         Dragging file - you can drop in your file system or in a web browser.
       </p>
     </div>
-    <p v-if="!directoryContents.length">You haven't imported any files.</p>
-    <div v-if="directoryContents.length" class="controls">
-      <div>
-        <button class="btn btn-default" @click="home()">
-          Home
-        </button>
-        <button
-          :disabled="!history || !history.length"
-          class="btn btn-default"
-          @click="back()"
-        >
-          Back
-        </button>
+    <div v-if="subsection === 'view-all'">
+      <div class="controls">
+        <div>
+          <button class="btn btn-default" @click="home()">
+            Home
+          </button>
+          <button
+            :disabled="!history || !history.length"
+            class="btn btn-default"
+            @click="back()"
+          >
+            Back
+          </button>
+        </div>
+        <div class="search">
+          <input
+            type="text"
+            name="search"
+            @keyup="onFilterKeyPress"
+            v-model="filterStr"
+            placeholder="filter (esc to clear)"
+          />
+        </div>
+        <div>
+          <button
+            :disabled="columns === 3"
+            class="btn btn-default"
+            @click="adjustColumns(1)"
+          >
+            Smaller
+          </button>
+          <button
+            :disabled="columns === 1"
+            class="btn btn-default"
+            @click="adjustColumns(-1)"
+          >
+            Bigger
+          </button>
+        </div>
       </div>
-      <div class="search">
-        <input
-          type="text"
-          name="search"
-          @keyup="onFilterKeyPress"
-          v-model="filterStr"
-          placeholder="filter (esc to clear)"
-        />
-      </div>
-      <div>
-        <button
-          :disabled="columns === 3"
-          class="btn btn-default"
-          @click="adjustColumns(1)"
-        >
-          Smaller
-        </button>
-        <button
-          :disabled="columns === 1"
-          class="btn btn-default"
-          @click="adjustColumns(-1)"
-        >
-          Bigger
-        </button>
+      <p v-if="!directoryContents.length">
+        You haven't imported any files, or try clearing your search filters.
+      </p>
+
+      <div v-if="directoryContents.length" class="directories" :style="cssVars">
+        <div v-for="directory in directoryContents" :key="directory">
+          <div
+            class="folder"
+            @click="changePath(directory)"
+            v-if="getType(directory) === 'folder'"
+          >
+            <div class="folder-icon">
+              <span class="icon icon-folder"></span>
+            </div>
+            <div class="title">
+              {{ directory }}
+            </div>
+          </div>
+          <div
+            class="file"
+            @click="openFileInFolder(directory)"
+            @drag="isDragging = true"
+            @dragend.passive="isDragging = false"
+            v-if="getType(directory) === 'image'"
+          >
+            <div class="file-container">
+              <div class="file-icon">
+                <span class="icon icon-picture"></span>
+              </div>
+              <div class="image">
+                <img class="screenshot" :src="buildImagePath(directory)" />
+              </div>
+            </div>
+            <div class="title">
+              {{ directory }}
+            </div>
+          </div>
+          <div
+            class="file video"
+            @click="openFileInFolder(directory)"
+            v-if="getType(directory) === 'video'"
+          >
+            <div class="file-container">
+              <div class="file-icon">
+                <span class="icon icon-video"></span>
+              </div>
+              <div class="image">
+                <div class="screenshot-placeholder"></div>
+              </div>
+            </div>
+            <div class="title">
+              {{ directory }}
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-    <div v-if="directoryContents.length" class="directories" :style="cssVars">
-      <div v-for="directory in directoryContents" :key="directory">
-        <div
-          class="folder"
-          @click="changePath(directory)"
-          v-if="getType(directory) === 'folder'"
-        >
-          <div class="folder-icon">
-            <span class="icon icon-folder"></span>
-          </div>
-          <div class="title">
-            {{ directory }}
-          </div>
+    <div v-if="subsection === 'recent'">
+      <p v-if="!recentImports.length">
+        You haven't recently imported any files.
+      </p>
+      <div v-if="recentImports.length" class="controls">
+        <div class="search">
+          <input
+            type="text"
+            name="search"
+            @keyup="onFilterKeyPress"
+            v-model="filterStr"
+            placeholder="filter (esc to clear)"
+          />
         </div>
-        <div
-          class="file"
-          @click="openFileInFolder(directory)"
-          @drag="isDragging = true"
-          @dragend.passive="isDragging = false"
-          v-if="getType(directory) === 'image'"
-        >
-          <div class="file-container">
-            <div class="file-icon">
-              <span class="icon icon-picture"></span>
-            </div>
-            <div class="image">
-              <img class="screenshot" :src="buildImagePath(directory)" />
-            </div>
-          </div>
-          <div class="title">
-            {{ directory }}
-          </div>
+        <div>
+          <button
+            :disabled="columns === 3"
+            class="btn btn-default"
+            @click="adjustColumns(1)"
+          >
+            Smaller
+          </button>
+          <button
+            :disabled="columns === 1"
+            class="btn btn-default"
+            @click="adjustColumns(-1)"
+          >
+            Bigger
+          </button>
         </div>
-        <div
-          class="file video"
-          @click="openFileInFolder(directory)"
-          v-if="getType(directory) === 'video'"
-        >
-          <div class="file-container">
-            <div class="file-icon">
-              <span class="icon icon-video"></span>
+      </div>
+      <div v-if="recentImports.length" class="directories" :style="cssVars">
+        <div v-for="fileName in recentImportFiltered" :key="fileName">
+          <div
+            class="file"
+            @click="openFileInFolder(fileName)"
+            @drag="isDragging = true"
+            @dragend.passive="isDragging = false"
+            v-if="getType(fileName) === 'image'"
+          >
+            <div class="file-container">
+              <div class="file-icon">
+                <span class="icon icon-picture"></span>
+              </div>
+              <div class="image">
+                <img class="screenshot" :src="`file:///${fileName}`" />
+              </div>
             </div>
-            <div class="image">
-              <div class="screenshot-placeholder"></div>
+            <div class="title">
+              {{ cleanFilename(fileName) }}
             </div>
           </div>
-          <div class="title">
-            {{ directory }}
+          <div
+            class="file video"
+            @click="openFileInFolder(fileName)"
+            v-if="getType(fileName) === 'video'"
+          >
+            <div class="file-container">
+              <div class="file-icon">
+                <span class="icon icon-video"></span>
+              </div>
+              <div class="image">
+                <div class="screenshot-placeholder"></div>
+              </div>
+            </div>
+            <div class="title">
+              {{ cleanFilename(fileName) }}
+            </div>
           </div>
         </div>
       </div>
@@ -115,6 +192,10 @@ export default {
       default: () => {
         return ["mp4", "jpg"];
       }
+    },
+    subsection: {
+      type: String,
+      default: "view-all"
     }
   },
   data() {
@@ -132,12 +213,22 @@ export default {
     this.home();
   },
   computed: {
-    ...mapState(["settings"]),
+    ...mapState(["settings", "recentImports"]),
     directoryContents() {
       if (!this.directory) {
         return [];
       }
       const files = fs.readdirSync(this.directory);
+      return files.filter(filename => {
+        return filename.toLowerCase().includes(this.filterStr.toLowerCase());
+      });
+    },
+    recentImportFiltered() {
+      if (!this.recentImports.length) {
+        return [];
+      }
+
+      const files = this.recentImports;
       return files.filter(filename => {
         return filename.toLowerCase().includes(this.filterStr.toLowerCase());
       });
@@ -149,6 +240,9 @@ export default {
     }
   },
   methods: {
+    cleanFilename(path) {
+      return path.substr(path.lastIndexOf("/") + 1);
+    },
     openFileInFolder(filePath) {
       shell.showItemInFolder(`${this.directory}/${filePath}`);
     },

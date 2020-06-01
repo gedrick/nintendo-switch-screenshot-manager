@@ -254,6 +254,9 @@ export default {
 
       ipcRenderer.once("files-copied", () => {
         this.inProgress = false;
+        this.instructions.forEach(instruction => {
+          this.addRecentImport(instruction.destination);
+        });
         this.clearInstructions();
       });
 
