@@ -197,23 +197,20 @@ import paths from "./paths.js";
 
 function addGameId(gameId, gameName) {
   const filePath = `${app.getPath("home")}/.nssm/user_game_ids.json`;
-  let fileContents;
-  if (fs.existsSync(filePath)) {
-    fileContents = fs.readFileSync(filePath, "utf8");
-    const gameMap = JSON.parse(fileContents);
-    if (!Object.keys(gameMap).includes(gameId) || !gameMap[gameId]) {
-      gameMap[gameId] = gameName;
+  const fileContents = fs.readFileSync(filePath, "utf8");
+  const gameMap = JSON.parse(fileContents);
+  if (!Object.keys(gameMap).includes(gameId) || !gameMap[gameId]) {
+    gameMap[gameId] = gameName;
 
-      try {
-        fs.writeFileSync(filePath, JSON.stringify(gameMap, null, 2), "utf8");
-        if (gameName) {
-          log(`Wrote new game mapping for ${gameName}`);
-        } else {
-          log(`Wrote empty mapping for ${gameId}`);
-        }
-      } catch (e) {
-        log(`Error writing game ID mapping: ${e}`, "error");
+    try {
+      fs.writeFileSync(filePath, JSON.stringify(gameMap, null, 2), "utf8");
+      if (gameName) {
+        log(`Wrote new game mapping for ${gameName}`);
+      } else {
+        log(`Wrote empty mapping for ${gameId}`);
       }
+    } catch (e) {
+      log(`Error writing game ID mapping: ${e}`, "error");
     }
   }
 }

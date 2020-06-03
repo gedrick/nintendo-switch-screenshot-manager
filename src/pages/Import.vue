@@ -174,7 +174,17 @@ export default {
         `${Electron.app.getPath("home")}/.nssm/game_ids.json`,
         "utf8"
       );
-      this.setGameIds(JSON.parse(gameIds));
+      const userGameIds = fs.readFileSync(
+        `${Electron.app.getPath("home")}/.nssm/user_game_ids.json`,
+        "utf8"
+      );
+      const merged = {
+        ...JSON.parse(gameIds),
+        ...JSON.parse(userGameIds)
+      };
+      console.log("Imported and merged game IDs: ", merged);
+
+      this.setGameIds(merged);
     },
     getAllFiles(dirPath, arrayOfFiles) {
       let files = fs.readdirSync(dirPath);
