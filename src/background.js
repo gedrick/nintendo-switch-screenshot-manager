@@ -40,9 +40,9 @@ const mainMenuTemplate = [
     label: "File",
     submenu: [
       {
-        label: "Open Mapping File",
+        label: "Open User Mappings",
         click: () => {
-          const filePath = `${app.getPath("home")}/.nssm/game_ids.json`;
+          const filePath = `${app.getPath("home")}/.nssm/user_game_ids.json`;
           if (fs.existsSync(filePath)) {
             shell.openItem(filePath);
           }
@@ -112,7 +112,6 @@ function createMainWindow() {
   }
 
   const mainMenu = Menu.buildFromTemplate(mainMenuTemplate);
-  // const mainMenu = Menu.buildFromTemplate([]);
   Menu.setApplicationMenu(mainMenu);
 
   mainWindow.on("closed", () => {
@@ -188,6 +187,7 @@ async function checkToUpdate() {
 }
 
 async function loadApp() {
+  await checkRequiredFiles();
   await importGameIds();
   createMainWindow();
 }
@@ -196,7 +196,7 @@ import axios from "axios";
 import paths from "./paths.js";
 
 function addGameId(gameId, gameName) {
-  const filePath = `${app.getPath("home")}/.nssm/game_ids.json`;
+  const filePath = `${app.getPath("home")}/.nssm/user_game_ids.json`;
   let fileContents;
   if (fs.existsSync(filePath)) {
     fileContents = fs.readFileSync(filePath, "utf8");
@@ -303,11 +303,36 @@ async function importGameIds() {
     log("Game ID mapping file was updated.");
   } else {
     try {
-      await fsp.mkdir(`${app.getPath("home")}/.nssm/`, { recursive: true });
       await fsp.writeFile(filePath, JSON.stringify(data, null, 2), "utf8");
     } catch (e) {
       log(`Error updating game ID mapping: ${e}`, "error");
     }
+  }
+}
+
+async function checkRequiredFiles() {
+  // Some files are required as they are pulled in and/or written
+  // to in the app. All are stored in $HOME/.nssm/
+  // game_ids.json          all official game id maps
+  // user_game_ids.json     user created game id maps
+  // settings.json          saved paths and file names
+
+  const homePath = `${app.getPath("home")}/.nssm/`;
+  await fsp.mkdir(`${homePath}`, { recursive: true });
+
+  if (!fs.existsSync(`${homePath}game_ids.json`)) {
+    log(`${homePath}game_ids.json does not exist - creating now.`);
+    await fsp.writeFile(`${homePath}game_ids.json`, "{}", "utf8");
+  }
+
+  if (!fs.existsSync(`${homePath}user_game_ids.json`)) {
+    log(`${homePath}user_game_ids.json does not exist - creating now.`);
+    await fsp.writeFile(`${homePath}user_game_ids.json`, "{}", "utf8");
+  }
+
+  if (!fs.existsSync(`${homePath}settings.json`)) {
+    log(`${homePath}settings.json does not exist - creating now.`);
+    await fsp.writeFile(`${homePath}settings.json`, "{}", "utf8");
   }
 }
 
