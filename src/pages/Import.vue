@@ -182,7 +182,6 @@ export default {
         ...JSON.parse(gameIds),
         ...JSON.parse(userGameIds)
       };
-      console.log("Imported and merged game IDs: ", merged);
 
       this.setGameIds(merged);
     },
@@ -225,7 +224,10 @@ export default {
         }
       });
 
-      if (dryRun && this.instructions.length) {
+      if (
+        (dryRun && this.instructions.length) ||
+        (dryRun && this.unknownGameIds.length)
+      ) {
         ipcRenderer.send("ask-to-import", {
           instructions: this.instructions,
           unknownIds: this.uniqueGameIds
@@ -239,9 +241,9 @@ export default {
           } else {
             this.$emit("changeSection", "resolve");
           }
-
           return;
         });
+        return;
       }
 
       if (!this.instructions.length) {

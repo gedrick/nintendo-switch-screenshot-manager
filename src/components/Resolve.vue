@@ -10,7 +10,7 @@
       <p>
         <b>
           Some screenshots could not be imported because they don't have a
-          matching ID. Sometimes this happens if the database is not up to date.
+          matching ID.
         </b>
       </p>
       <p>
@@ -50,11 +50,15 @@
       </div>
       <div class="col s4">
         <img
+          v-if="fileIsImage(game.screenshotPath)"
           @click="toggleFullScreen(game.gameId)"
           :ref="`screenshot-${game.gameId}`"
           class="screenshot"
           :src="`file://${game.screenshotPath}`"
         />
+        <button v-else @click="openVideo(game.screenshotPath)">
+          Open Video
+        </button>
       </div>
     </div>
   </div>
@@ -64,7 +68,7 @@
 const fs = require("fs");
 import { mapState, mapMutations } from "vuex";
 import mixins from "../helpers/mixins";
-import { ipcRenderer } from "electron";
+import { ipcRenderer, shell } from "electron";
 
 export default {
   name: "Resolve",
@@ -80,6 +84,12 @@ export default {
   },
   methods: {
     ...mapMutations(["addGameId", "removeUnknownGameId"]),
+    openVideo(filePath) {
+      shell.openItem(filePath);
+    },
+    fileIsImage(filePath) {
+      return filePath.endsWith("jpg");
+    },
     addGameId(gameId) {
       ipcRenderer.send("addGameId", gameId, this.newTitle[gameId]);
       this.removeUnknownGameId(gameId);
