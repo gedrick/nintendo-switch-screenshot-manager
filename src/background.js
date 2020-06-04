@@ -89,6 +89,41 @@ const mainMenuTemplate = [
         }
       }
     ]
+  },
+  {
+    label: "Help",
+    submenu: [
+      {
+        label: "Submit Custom Game Mapping",
+        click: async () => {
+          const filePath = `${app.getPath("home")}/.nssm/user_game_ids.json`;
+          const fileContents = fs.readFileSync(filePath);
+          const userIds = JSON.parse(fileContents);
+          const amountOfIds = Object.keys(userIds).length;
+          if (!amountOfIds) {
+            showDialogBox(
+              "You don't currently have any custom IDs to share",
+              "error"
+            );
+          } else {
+            if (
+              await showYesNoBox(
+                `You have ${amountOfIds} custom IDs. Do you want to submit them?`
+              )
+            ) {
+              const ids = Object.keys(userIds);
+              let issueText = "";
+              ids.forEach(id => {
+                issueText += `${id}: "${userIds[id]}"\n`;
+              });
+              shell.openExternal(
+                `https://github.com/gedrick/nintendo-switch-screenshot-manager/issues/new?title=Custom ID Submission&body=${issueText}`
+              );
+            }
+          }
+        }
+      }
+    ]
   }
 ];
 
@@ -220,6 +255,16 @@ function showDialogBox(message, type = "info") {
     type,
     message
   });
+}
+
+async function showYesNoBox(message, type = "info") {
+  const dialogResult = await dialog.showMessageBox(mainWindow, {
+    buttons: ["Cancel", "OK"],
+    cancelId: 0,
+    type,
+    message
+  });
+  return dialogResult.response > 0;
 }
 
 ipcMain.on("show-message", (event, message, type) => {
